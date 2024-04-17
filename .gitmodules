@@ -1,0 +1,3 @@
+[submodule "lib/threshold-zk-LHE"]
+	path = lib/threshold-zk-LHE
+	url = git@github.com:pado-labs/threshold-zk-LHE.git
