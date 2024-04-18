@@ -37,10 +37,22 @@
 
 **Input**
 
+```json
+{
+  "t": 2,
+  "n": 3,             // n >= 3; n >= t >= 1
+  "indices": [1,2,3]  // the pado node index, start from 1
+}
+```
 
 **Output**
 
-
+```json
+{
+  "sk": {}, // secret key
+  "pk": []  // public key
+}
+```
 
 ### Encrypt
 
@@ -49,9 +61,25 @@
  
 **Input**
 
-
+```json
+{
+  "t": 2,
+  "n": 3,         // n >= 3; n >= t >= 1
+  "indices": [],  // pado node index, start from 1
+  "pks": [],      // pado node public keys, which length is equal to n
+  "msg": []       // plain message
+}
+```
 
 **Output**
+
+```json
+{
+  "enc_sks": [],  // encrypted secret keys, which length is equal to n
+  "nonce": [],    // nonce
+  "enc_msg": []   // encrypted message
+}
+```
 
 
 
@@ -62,9 +90,26 @@
 
 **Input**
 
+```json
+{
+  "t": 2,
+  "n": 3,           // n >= 3; n >= t >= 1
+  "indices": [],    // pado node index, start from 1
+  "enc_sk": [],     // data provider encrypted secrect key
+  "node_sk": {},    // pado node secrect key
+  "consumer_pk": [] // consumer publick key
+}
+```
+
 
 
 **Output**
+
+```json
+{
+  "re_enc_sk": [] // re-encrypted secrect key
+}
+```
 
 
 
@@ -75,7 +120,26 @@
 
 **Input**
 
+```json
+{
+  "t": 2,
+  "n": 3,               // n >= 3; n >= t >= 1
+  "indices": [],        // pado node index, start from 1
+  "re_enc_sks": [],     // re-encrypted secrect keys
+  "chosen_indices": [], // selected nodes for computing
+  "consumer_sk": {},    // consumer secrect key
+  "nonce": [],          // nonce
+  "enc_msg": []         // encrypted message
+}
+```
+
 
 
 **Output**
+
+```json
+{
+  "msg": [] // decrypted message
+}
+```
 
