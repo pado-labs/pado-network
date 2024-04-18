@@ -66,7 +66,7 @@
   "t": 2,
   "n": 3,         // n >= 3; n >= t >= 1
   "indices": [],  // pado node index, start from 1
-  "pks": [],      // pado node public keys, which length is equal to n
+  "node_pks": [], // pado node public keys, which length is equal to n
   "msg": []       // plain message
 }
 ```
@@ -107,7 +107,7 @@
 
 ```json
 {
-  "re_enc_sk": [] // re-encrypted secrect key
+  "reenc_sk": [] // re-encrypted secrect key
 }
 ```
 
@@ -125,7 +125,7 @@
   "t": 2,
   "n": 3,               // n >= 3; n >= t >= 1
   "indices": [],        // pado node index, start from 1
-  "re_enc_sks": [],     // re-encrypted secrect keys
+  "reenc_sks": [],      // re-encrypted secrect keys
   "chosen_indices": [], // selected nodes for computing
   "consumer_sk": {},    // consumer secrect key
   "nonce": [],          // nonce

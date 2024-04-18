@@ -28,10 +28,10 @@ pub fn _keygen(param: &KeyGenParam) -> KeyGenResult {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EncryptParam {
     t: usize,
-    n: usize,                 // n >= 3; n >= t >= 1
-    indices: Vec<PlainField>, // pado node index, start from 1
-    pks: Vec<BFVPublicKey>,   // pado node public keys, which length is equal to n
-    msg: Vec<u8>,             // plain message
+    n: usize,                    // n >= 3; n >= t >= 1
+    indices: Vec<PlainField>,    // pado node index, start from 1
+    node_pks: Vec<BFVPublicKey>, // pado node public keys, which length is equal to n
+    msg: Vec<u8>,                // plain message
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -44,7 +44,7 @@ pub struct EncryptResult {
 pub fn _encrypt(param: &EncryptParam) -> EncryptResult {
     let ctx = ThresholdPKE::gen_context(param.n, param.t, param.indices.clone());
 
-    let (enc_sks, nonce, enc_msg) = ThresholdPKE::encrypt_bytes(&ctx, &param.pks, &param.msg);
+    let (enc_sks, nonce, enc_msg) = ThresholdPKE::encrypt_bytes(&ctx, &param.node_pks, &param.msg);
 
     EncryptResult {
         enc_sks,
@@ -65,15 +65,15 @@ pub struct ReEncryptParam {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ReEncryptResult {
-    re_enc_sk: BFVCiphertext, // re-encrypted secrect key
+    reenc_sk: BFVCiphertext, // re-encrypted secrect key
 }
 
 pub fn _reencrypt(param: &ReEncryptParam) -> ReEncryptResult {
     let ctx = ThresholdPKE::gen_context(param.n, param.t, param.indices.clone());
 
-    let re_enc_sk =
+    let reenc_sk =
         ThresholdPKE::re_encrypt(&ctx, &param.enc_sk, &param.node_sk, &param.consumer_pk);
-    ReEncryptResult { re_enc_sk }
+    ReEncryptResult { reenc_sk }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -81,7 +81,7 @@ pub struct DecryptParam {
     t: usize,
     n: usize,                        // n >= 3; n >= t >= 1
     indices: Vec<PlainField>,        // pado node index, start from 1
-    re_enc_sks: Vec<BFVCiphertext>,  // re-encrypted secrect keys
+    reenc_sks: Vec<BFVCiphertext>,   // re-encrypted secrect keys
     chosen_indices: Vec<PlainField>, // selected nodes for computing
     consumer_sk: BFVSecretKey,       // consumer secrect key
     nonce: Vec<u8>,                  // nonce
@@ -96,7 +96,7 @@ pub struct DecryptResult {
 pub fn _decrypt(param: &DecryptParam) -> DecryptResult {
     let ctx = ThresholdPKE::gen_context(param.n, param.t, param.indices.clone());
 
-    let c = ThresholdPKE::combine(&ctx, &param.re_enc_sks, &param.chosen_indices);
+    let c = ThresholdPKE::combine(&ctx, &param.reenc_sks, &param.chosen_indices);
 
     let nonce = Nonce::clone_from_slice(&param.nonce);
     let msg = ThresholdPKE::decrypt_bytes(&ctx, &param.consumer_sk, &c, &nonce, &param.enc_msg);

@@ -70,12 +70,12 @@
 
       console.log("2. data provider encrypt the message")
       var msg = "this is the message";
-      var pks = [node_key1.pk, node_key2.pk, node_key3.pk];
+      var node_pks = [node_key1.pk, node_key2.pk, node_key3.pk];
       var encrypt_param = {
         t: t,
         n: n,
         indices: indices,
-        pks: pks,
+        node_pks: node_pks,
         msg: stringToByte(msg),
       };
       console.log('encrypt_param', encrypt_param);
@@ -94,7 +94,7 @@
 
 
       console.log("4. pado node re-encrypt")
-      var pks = [node_key1.pk, node_key2.pk, node_key3.pk];
+      var node_pks = [node_key1.pk, node_key2.pk, node_key3.pk];
       var reencrypt_param = {
         t: t,
         n: n,
@@ -136,16 +136,16 @@
 
 
       console.log("5. data consumer decrypt the message")
-      let re_enc_sks = [c1.re_enc_sk, c2.re_enc_sk, c3.re_enc_sk];
+      let reenc_sks = [c1.reenc_sk, c2.reenc_sk, c3.reenc_sk];
       let chosen_indices = [1, 2, 3];
       // you can also choice [1, 2], [1, 3] or [2, 3], like:
-      // let re_enc_sks = [c2.re_enc_sk, c3.re_enc_sk];
+      // let reenc_sks = [c2.reenc_sk, c3.reenc_sk];
       // let chosen_indices = [2, 3];
       var decrypt_param = {
         t: t,
         n: n,
         indices: indices,
-        re_enc_sks: re_enc_sks,
+        reenc_sks: reenc_sks,
         chosen_indices: chosen_indices,
         consumer_sk: consumer_key.sk,
         nonce: encrypt_result.nonce,
