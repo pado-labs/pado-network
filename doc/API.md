@@ -39,9 +39,9 @@
 
 ```json
 {
-  "t": 2,
-  "n": 3,             // n >= 3; n >= t >= 1
-  "indices": [1,2,3]  // the pado node index, start from 1
+  "t": 2,         // type:number| 
+  "n": 3,         // type:number| n >= 3; n >= t >= 1
+  "indices": [],  // type:number-array| pado node index, start from 1
 }
 ```
 
@@ -49,8 +49,8 @@
 
 ```json
 {
-  "sk": {}, // secret key
-  "pk": []  // public key
+  "sk": "", // type:string| secret key
+  "pk": ""  // type:string| public key
 }
 ```
 
@@ -63,11 +63,11 @@
 
 ```json
 {
-  "t": 2,
-  "n": 3,         // n >= 3; n >= t >= 1
-  "indices": [],  // pado node index, start from 1
-  "node_pks": [], // pado node public keys, which length is equal to n
-  "msg": []       // plain message
+  "t": 2,         // type:number| 
+  "n": 3,         // type:number| n >= 3; n >= t >= 1
+  "indices": [],  // type:number-array| pado node index, start from 1
+  "node_pks": [], // type:string-array| pado node public keys, which length is equal to n
+  "msg": []       // type:byte-array| plain message
 }
 ```
 
@@ -75,9 +75,9 @@
 
 ```json
 {
-  "enc_sks": [],  // encrypted secret keys, which length is equal to n
-  "nonce": [],    // nonce
-  "enc_msg": []   // encrypted message
+  "enc_sks": [],  // type:string-array| encrypted secret keys, which length is equal to n
+  "nonce": "",    // type:string| nonce
+  "enc_msg": ""   // type:string| encrypted message
 }
 ```
 
@@ -92,12 +92,12 @@
 
 ```json
 {
-  "t": 2,
-  "n": 3,           // n >= 3; n >= t >= 1
-  "indices": [],    // pado node index, start from 1
-  "enc_sk": [],     // data provider encrypted secrect key
-  "node_sk": {},    // pado node secrect key
-  "consumer_pk": [] // consumer publick key
+  "t": 2,           // type:number| 
+  "n": 3,           // type:number| n >= 3; n >= t >= 1
+  "indices": [],    // type:number-array| pado node index, start from 1
+  "enc_sk": "",     // type:string| data provider encrypted secrect key
+  "node_sk": "",    // type:string| pado node secrect key
+  "consumer_pk": "" // type:string| consumer publick key
 }
 ```
 
@@ -107,7 +107,7 @@
 
 ```json
 {
-  "reenc_sk": [] // re-encrypted secrect key
+  "reenc_sk": "" // type:string| re-encrypted secrect key
 }
 ```
 
@@ -122,14 +122,14 @@
 
 ```json
 {
-  "t": 2,
-  "n": 3,               // n >= 3; n >= t >= 1
-  "indices": [],        // pado node index, start from 1
-  "reenc_sks": [],      // re-encrypted secrect keys
-  "chosen_indices": [], // selected nodes for computing
-  "consumer_sk": {},    // consumer secrect key
-  "nonce": [],          // nonce
-  "enc_msg": []         // encrypted message
+  "t": 2,               // type:number| 
+  "n": 3,               // type:number| n >= 3; n >= t >= 1
+  "indices": [],        // type:number-array| pado node index, start from 1
+  "chosen_indices": [], // type:number-array| selected nodes for computing
+  "reenc_sks": [],      // type:string-array| re-encrypted secrect keys
+  "consumer_sk": "",    // type:string| consumer secrect key
+  "nonce": "",          // type:string| nonce
+  "enc_msg": ""         // type:string| encrypted message
 }
 ```
 
@@ -139,7 +139,7 @@
 
 ```json
 {
-  "msg": [] // decrypted message
+  "msg": [] // type:byte-array| decrypted message
 }
 ```
 

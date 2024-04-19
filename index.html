@@ -21,7 +21,7 @@
     // [in] param_obj, json object
     // [return] json object
     function lhe_call(func, param_obj) {
-      console.log('xxxxx  input:', param_obj);
+      // console.log('lhe_call  input:', param_obj);
       let param_json = JSON.stringify(param_obj);
       let param_ptr = allocateUTF8(param_json);
 
@@ -32,7 +32,7 @@
       _free_cptr(cptr);
 
       let ret_obj = JSON.parse(ret_json)
-      console.log('xxxxx output:', ret_obj);
+      // console.log('lhe_call output:', ret_obj);
 
       return ret_obj;
     }
@@ -55,6 +55,7 @@
         n: n,
         indices: indices,
       };
+      console.log('keygen_param', keygen_param);
       console.log("1.1 pado node1 init, keygen")
       let node_key1 = keygen(keygen_param);
       console.log("node_key1:", node_key1);
@@ -145,16 +146,15 @@
         t: t,
         n: n,
         indices: indices,
-        reenc_sks: reenc_sks,
         chosen_indices: chosen_indices,
+        reenc_sks: reenc_sks,
         consumer_sk: consumer_key.sk,
         nonce: encrypt_result.nonce,
         enc_msg: encrypt_result.enc_msg,
       };
       console.log('decrypt_param', decrypt_param);
       var msg = decrypt(decrypt_param);
-      console.log("msg:", msg);
-      console.log("msg:", byteToString(msg.msg));
+      console.log("decrypted_msg:", msg);
     }
 
     // helper functions
