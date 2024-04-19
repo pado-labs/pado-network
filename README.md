@@ -20,7 +20,3 @@ Open Chrome, type `http://127.0.0.1:8000` and click the `TestAll` button.
 
 - [API](./doc/API.md).
 
-
-## TODO
-
-- [API](./TODO.md).
