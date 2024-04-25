@@ -6,6 +6,64 @@ use serde::{Deserialize, Serialize};
 use std::ffi::CString;
 use std::os::raw::c_char;
 
+fn try_compress_sk(sk: &BFVSecretKey) -> String {
+    let bytes = sk.to_vec();
+
+    let iter = bytes
+        .chunks_exact(4)
+        .map(|chunk| <[u8; 4]>::try_from(chunk).unwrap());
+    let mut b: u8 = 0;
+    let mut bs: Vec<u8> = vec![];
+    let mut index = 0;
+    for v in iter {
+        let k = (3 - index % 4) * 2;
+        let u = u32::from_be_bytes(v);
+        if u == 0 {
+            b |= 0x00 << k;
+        } else if u == 1 {
+            b |= 0x01 << k;
+        } else if u == 0x07e00000 {
+            b |= 0x02 << k;
+        } else {
+            return hex::encode(bytes);
+        }
+        if index % 4 == 3 {
+            bs.push(b);
+            b = 0;
+        }
+        index += 1;
+    }
+
+    // println!("e bs.len() {}", bs.len());
+    return hex::encode(bs);
+}
+
+fn try_decompress_sk(data: &String) -> BFVSecretKey {
+    let bytes = hex::decode(data).unwrap();
+    if bytes.len() != 256 {
+        return BFVSecretKey::from_vec(&bytes);
+    }
+
+    let mut bs: Vec<u8> = vec![];
+    for b in bytes {
+        for i in 0..4 {
+            let k = (3 - i) * 2;
+            let mut u: u32 = 0;
+            let v = (b >> k) & 0x03;
+            if v == 0x00 {
+                u = 0;
+            } else if v == 0x01 {
+                u = 1;
+            } else if v == 0x02 {
+                u = 0x07e00000;
+            }
+            bs.extend(u.to_be_bytes());
+        }
+    }
+    // println!("d bs.len() {}", bs.len());
+    return BFVSecretKey::from_vec(&bs);
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct KeyGenParam {
     t: usize,
@@ -26,7 +84,7 @@ pub struct KeyGenResultS {
 }
 impl KeyGenResult {
     pub fn to_json(&self) -> String {
-        let sk = hex::encode(self.sk.to_vec());
+        let sk = try_compress_sk(&self.sk);
         let pk = hex::encode(self.pk.to_vec());
         let ret = KeyGenResultS { sk, pk };
         let res = serde_json::to_string(&ret).unwrap();
@@ -145,7 +203,7 @@ impl ReEncryptParam {
         let param: ReEncryptParamS = serde_json::from_str(param).unwrap();
 
         let enc_sk = BFVCiphertext::from_vec(&hex::decode(&param.enc_sk).unwrap());
-        let node_sk = BFVSecretKey::from_vec(&hex::decode(&param.node_sk).unwrap());
+        let node_sk = try_decompress_sk(&param.node_sk);
         let consumer_pk = BFVPublicKey::from_vec(&hex::decode(&param.consumer_pk).unwrap());
         ReEncryptParam {
             t: param.t,
@@ -218,7 +276,7 @@ impl DecryptParam {
             reenc_sks.push(_reenc_sk);
         }
 
-        let consumer_sk = BFVSecretKey::from_vec(&hex::decode(&param.consumer_sk).unwrap());
+        let consumer_sk = try_decompress_sk(&param.consumer_sk);
         let nonce = hex::decode(&param.nonce).unwrap();
         let enc_msg = hex::decode(&param.enc_msg).unwrap();
         DecryptParam {
