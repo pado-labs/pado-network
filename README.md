@@ -1,22 +1,8 @@
 # pado-network
 
 
-## Quick Start
-
-```sh
-cargo build --release
-```
-
-## Local Test
-
-```sh
-python -m http.server
-```
-
-Open Chrome, type `http://127.0.0.1:8000` and click the `TestAll` button.
+The PADO Nodes of the PADO Networks.
 
 
-## Documents
-
-- [API](./doc/API.md).
+- The [WASM wrapper](./lib/lhe/README.md) for [threshold-zk-LHE](https://github.com/pado-labs/threshold-zk-LHE).
 
