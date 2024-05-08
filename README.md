@@ -6,6 +6,30 @@ PADO Network is a Decentralized Verifiable Confidential Computation Network. PAD
 
 PADO will use the Arweave blockchain as a privacy data storage layer. Users can encrypt their own data and store it securely on the Arweave blockchain through PADO's zkFHE technology. Any confidential computation request within the AO ecosystem can be sent to the zkFHE computing nodes of PADO Network through the AO.
 
+## Why PADO and AO
+
+zkFHE is designed on top of the FHE algorithm, which synchronously performs ZK proof on the homomorphic computation process. The simultaneous integrity constraints ensure the reliability of homomorphic operations and the correctness of the encrypted result while preserving data privacy during the whole process. zkFHE is a novel cryptographic technology that organically combines the two cutting-edge cryptographic primitives, ZK and FHE, and uses the advantages of the two to complement each other, thus providing practical **verifiable confidential computation (VCC)**.
+
+In summary, the core advantage of zkFHE include:
+
+● Privacy-friendly
+
+● Computational Integrity
+
+● General-purpose computation
+
+Therefore, we believe that zkFHE is the fundamental technology for building a verifiable data economy in the Web3 era.
+
+zkFHE can support any type of ciphertext computing, which breaks the ceiling of privacy restrictions for the current blockchain applications and can realize broader and richer scenarios. Typical applications include payment, voting, auction, MEV, content sharing, privacy-preserving AI, and many other fields.
+
+zkFHE stands as a groundbreaking cryptographic technology, which goes beyond a mere amalgamation of zkSNARKs and FHE algorithms. Instead, it demands a meticulous redesign and optimization of the underlying cryptographic protocols to attain the same efficiency as performant FHE algorithms.
+
+When integrated with AO and Arweave networks, PADO swiftly launches the zkFHE network in practice. Its computing, scheduling, and storage functionalities operate independently, allowing for an indefinite expansion of computing power. Furthermore, the AO ecosystem can leverage PADO's zkFHE technology to access verifiable confidential computation and comprehensive privacy protection capabilities.
+
+PADO has long been dedicated to constructing a cryptographic infrastructure for personal data sovereignty. While personal data sovereignty remains in its nascent stages, it will undergo extensive exploration and validation, serving as a pivotal element for the Web3 project's expansion beyond the non-financial domain. We firmly believe that the integrationwith the AO hyper-parallel computer, will significantly expedite the establishment of personal data sovereignty and a verifiable data economy.
+
+Looking ahead, we envision a future where every user can safeguard their data sovereignty through blockchain and cryptography.
+
 ## Components
 
 PADO Network consists of three parts: PADO AO SDK, PADO AO Process and PADO Node.
