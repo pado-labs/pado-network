@@ -4,3 +4,4 @@ dist/
 
 Cargo.lock
 
+.DS_Store

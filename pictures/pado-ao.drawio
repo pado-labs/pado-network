@@ -1,0 +1,178 @@
+<mxfile host="Electron" modified="2024-05-08T04:02:40.856Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.0.4 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="m_ByyxiPNCeV0GYvJFNK" version="24.0.4" type="device">
+  <diagram name="第 1 页" id="ghtXRSLPDQJWJSeyG4D3">
+    <mxGraphModel dx="954" dy="727" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-1" value="PADO&lt;div&gt;FHE&amp;nbsp;&lt;div&gt;Network&lt;/div&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="460" y="553" width="290" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-6" value="AO&amp;nbsp;&lt;div&gt;Computer&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+          <mxGeometry x="460" y="280" width="290" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-7" value="AR" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+          <mxGeometry x="190" y="110" width="810" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-8" value="Data Provider" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" parent="1" vertex="1">
+          <mxGeometry x="30" y="440" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-9" value="Node Registry&lt;div&gt;Process&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="510" y="310" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-10" value="Task And Result&lt;div&gt;Process&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="630" y="310" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-12" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="500" y="550" as="sourcePoint" />
+            <mxPoint x="500" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-13" value="1. Register&amp;nbsp;&lt;div&gt;Node Info&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="QxX5tkR7ZN4w_CKySbzB-12" vertex="1" connectable="0">
+          <mxGeometry x="0.1" relative="1" as="geometry">
+            <mxPoint y="3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-14" value="&lt;div&gt;PADO SDK&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=center;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="190" y="280" width="80" height="490" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-15" value="&lt;div&gt;Data Registry&lt;/div&gt;&lt;div&gt;Process&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="510" y="410" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-16" value="" style="endArrow=classic;html=1;rounded=0;entryX=-0.033;entryY=0.385;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="QxX5tkR7ZN4w_CKySbzB-14" edge="1" source="QxX5tkR7ZN4w_CKySbzB-8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="70" y="440" as="sourcePoint" />
+            <mxPoint x="180" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-17" value="2. Upload Data&amp;nbsp;&lt;div&gt;and set price&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="QxX5tkR7ZN4w_CKySbzB-16" vertex="1" connectable="0">
+          <mxGeometry x="-0.5273" relative="1" as="geometry">
+            <mxPoint x="24" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-18" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.143;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="270" y="292" as="sourcePoint" />
+            <mxPoint x="456" y="292.15" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-19" value="3. Choose nodes,&amp;nbsp;&lt;div&gt;get nodes PK1,&amp;nbsp;&lt;/div&gt;&lt;div&gt;PK2,..., PKx&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="QxX5tkR7ZN4w_CKySbzB-18" vertex="1" connectable="0">
+          <mxGeometry x="-0.3563" y="1" relative="1" as="geometry">
+            <mxPoint x="19" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-21" value="4.&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;Split K into K1, K2, ..., Kx, compute&lt;/span&gt;&lt;div&gt;C1 = PKE(PK1, K1),&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;...&lt;/span&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Cx = PKE(PKx, Kx),&lt;/div&gt;&lt;div&gt;C= SKE(K, m)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;" parent="1" vertex="1">
+          <mxGeometry x="270" y="334" width="150" height="86" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-22" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.638;exitY=-0.012;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="232.03999999999996" y="275.08000000000004" as="sourcePoint" />
+            <mxPoint x="232" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-23" value="5. Upload&amp;nbsp;&lt;div&gt;encrypted data C&amp;nbsp;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="QxX5tkR7ZN4w_CKySbzB-22" vertex="1" connectable="0">
+          <mxGeometry x="-0.6725" y="1" relative="1" as="geometry">
+            <mxPoint x="-1" y="-23" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-24" value="Data User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" parent="1" vertex="1">
+          <mxGeometry x="1130" y="440" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-25" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1130" y="470" as="sourcePoint" />
+            <mxPoint x="1010" y="469.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-27" value="7.&amp;nbsp;Pay with PK" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="QxX5tkR7ZN4w_CKySbzB-25" vertex="1" connectable="0">
+          <mxGeometry x="-0.5687" y="1" relative="1" as="geometry">
+            <mxPoint x="-34" y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-34" value="&lt;div&gt;10. RCx=PKE(PK,Cx)&lt;/div&gt;&lt;div&gt;with a proof&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;" parent="1" vertex="1">
+          <mxGeometry x="560" y="623" width="130" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-3" value="PADO Node" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="640" y="573" width="90" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-2" value="PADO Node" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="520" y="573" width="90" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-4" value="PADO Node" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="520" y="683" width="90" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-5" value="......" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="640" y="683" width="90" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-37" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="710" y="550" as="sourcePoint" />
+            <mxPoint x="710" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-38" value="11. Submit Result&amp;nbsp;&lt;div&gt;and Proof&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="QxX5tkR7ZN4w_CKySbzB-37" vertex="1" connectable="0">
+          <mxGeometry x="0.0667" relative="1" as="geometry">
+            <mxPoint y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-1" value="" style="endArrow=classic;html=1;rounded=0;entryX=-0.021;entryY=0.881;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1.05;exitY=0.376;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="QxX5tkR7ZN4w_CKySbzB-14" target="QxX5tkR7ZN4w_CKySbzB-6">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="290" y="460" as="sourcePoint" />
+            <mxPoint x="360" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-2" value="6. Register Data Info" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="GgncNxLAlhZiATb8ekoJ-1">
+          <mxGeometry x="-0.4429" relative="1" as="geometry">
+            <mxPoint x="39" y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-3" value="9. get Compute&amp;nbsp;&lt;div&gt;Tasks&lt;/div&gt;" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="QxX5tkR7ZN4w_CKySbzB-1" target="QxX5tkR7ZN4w_CKySbzB-6">
+          <mxGeometry x="0.0476" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="604.5" y="490" as="sourcePoint" />
+            <mxPoint x="610" y="500" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-4" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=-0.05;exitY=0.194;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="916" y="376.28" as="sourcePoint" />
+            <mxPoint x="750" y="377.72" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-5" value="12.&amp;nbsp;Get RCx and data Info" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="GgncNxLAlhZiATb8ekoJ-4">
+          <mxGeometry x="-0.5687" y="1" relative="1" as="geometry">
+            <mxPoint x="-40" y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-6" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.951;entryY=0.989;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryPerimeter=0;" edge="1" parent="1" source="GgncNxLAlhZiATb8ekoJ-13" target="QxX5tkR7ZN4w_CKySbzB-7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1190" y="334" as="sourcePoint" />
+            <mxPoint x="930" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-7" value="13. Get encrypted data C" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="GgncNxLAlhZiATb8ekoJ-6">
+          <mxGeometry x="0.2444" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-13" value="&lt;div&gt;PADO SDK&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=center;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="920" y="280" width="80" height="490" as="geometry" />
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-15" value="" style="endArrow=classic;html=1;rounded=0;entryX=1.014;entryY=0.224;entryDx=0;entryDy=0;entryPerimeter=0;exitX=-0.062;exitY=0.096;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="GgncNxLAlhZiATb8ekoJ-13" target="QxX5tkR7ZN4w_CKySbzB-6">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="850" y="360" as="sourcePoint" />
+            <mxPoint x="900" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-16" value="8. submit Compute Task" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="GgncNxLAlhZiATb8ekoJ-15">
+          <mxGeometry x="0.4914" y="1" relative="1" as="geometry">
+            <mxPoint x="45" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GgncNxLAlhZiATb8ekoJ-18" value="&lt;div style=&quot;font-size: 11px; text-wrap: nowrap;&quot;&gt;14. Compute PKE(PKx.Kx),&lt;/div&gt;&lt;div style=&quot;font-size: 11px; text-wrap: nowrap;&quot;&gt;PKE(PK, K),&amp;nbsp;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px; text-wrap: nowrap;&quot;&gt;SKE(K, m),&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px; text-wrap: nowrap;&quot;&gt;and Get Data&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="400" width="140" height="65" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
