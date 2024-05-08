@@ -4,7 +4,7 @@
   "description": "PADO Node",
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist && tsc --build tsconfig.json && cp src/lib/lhe.wasm dist/lib/",
+    "build": "rm -rf dist && tsc --build tsconfig.json",
     "test": "node --test ./src"
   },
   "author": "PADO Labs",
