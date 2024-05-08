@@ -6,6 +6,11 @@ import { readFileSync } from "node:fs";
 import { exit } from "node:process";
 
 
+const NODE_INDICES = new Map();
+NODE_INDICES.set("testnode1", 0);
+NODE_INDICES.set("testnode2", 1);
+NODE_INDICES.set("testnode3", 2);
+
 /**
  * 
  * Do task
@@ -18,13 +23,19 @@ import { exit } from "node:process";
  * @param sk - the node secert key
  */
 async function doTask(name: string, sk: string, signer: any) {
+    let index = NODE_INDICES.get(name);
+    if (typeof (index) == "undefined") {
+        console.log("Can not get node index by", name, "from", Object.fromEntries(NODE_INDICES));
+        return;
+    }
+
     /// 1. fetch pending task(s)
     const pendingTasks = await getPendingTasks();
     let pendingTasksObj = Object();
     try {
         pendingTasksObj = JSON.parse(pendingTasks);
     } catch (e) {
-        console.log("JSON.parse(pendingTasks) exception:", e);
+        console.log("getPendingTasks JSON.parse(pendingTasks) exception:", e);
         return;
     }
     // console.log("doTask pendingTasks=", pendingTasks);
@@ -44,18 +55,18 @@ async function doTask(name: string, sk: string, signer: any) {
 
 
         const dataRes = await getDataById(dataId);
-        const dataResObj = JSON.parse(dataRes);
+        let dataResObj = Object();
+        try {
+            dataResObj = JSON.parse(dataRes);
+        } catch (e) {
+            console.log("getDataById JSON.parse(dataRes) exception:", e);
+            return;
+        }
         // console.log("doTask Data=", dataResObj);
         {
-            // todo!
             var encSks = dataResObj["encSks"];
             const encSksObj = JSON.parse(encSks);
-            let encSk = encSksObj[0];
-            if (name == "testnode2") {
-                encSk = encSksObj[1];
-            } else if (name == "testnode3") {
-                encSk = encSksObj[2];
-            }
+            let encSk = encSksObj[index];
 
             /// 2. do reencrypt
             var threshold = { t: inputDataObj["t"], n: inputDataObj["n"], indices: inputDataObj["indices"] };
