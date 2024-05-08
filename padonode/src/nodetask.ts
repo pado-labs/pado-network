@@ -20,7 +20,13 @@ import { exit } from "node:process";
 async function doTask(name: string, sk: string, signer: any) {
     /// 1. fetch pending task(s)
     const pendingTasks = await getPendingTasks();
-    const pendingTasksObj = JSON.parse(pendingTasks);
+    let pendingTasksObj = Object();
+    try {
+        pendingTasksObj = JSON.parse(pendingTasks);
+    } catch (e) {
+        console.log("JSON.parse(pendingTasks) exception:", e);
+        return;
+    }
     // console.log("doTask pendingTasks=", pendingTasks);
     for (var i in pendingTasksObj) {
         var task = pendingTasksObj[i];
@@ -83,7 +89,11 @@ const signer = createDataItemSigner(wallet);
 
 async function test() {
     setTimeout(async () => {
-        await doTask(name, key.sk, signer);
+        try {
+            await doTask(name, key.sk, signer);
+        } catch (e) {
+            console.log("doTask exception:", e);
+        }
         test();
     }, 3000)
 }
