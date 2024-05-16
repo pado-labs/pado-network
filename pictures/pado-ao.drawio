@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2024-05-08T04:02:40.856Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.0.4 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="m_ByyxiPNCeV0GYvJFNK" version="24.0.4" type="device">
+<mxfile host="Electron" modified="2024-05-08T07:16:44.159Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.0.4 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="ABqXyCJGmwNKFIHza5-I" version="24.0.4" type="device">
   <diagram name="第 1 页" id="ghtXRSLPDQJWJSeyG4D3">
     <mxGraphModel dx="954" dy="727" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -10,7 +10,7 @@
         <mxCell id="QxX5tkR7ZN4w_CKySbzB-6" value="AO&amp;nbsp;&lt;div&gt;Computer&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
           <mxGeometry x="460" y="280" width="290" height="210" as="geometry" />
         </mxCell>
-        <mxCell id="QxX5tkR7ZN4w_CKySbzB-7" value="AR" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+        <mxCell id="QxX5tkR7ZN4w_CKySbzB-7" value="Arweave" style="rounded=0;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
           <mxGeometry x="190" y="110" width="810" height="90" as="geometry" />
         </mxCell>
         <mxCell id="QxX5tkR7ZN4w_CKySbzB-8" value="Data Provider" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" parent="1" vertex="1">

@@ -2,9 +2,9 @@
 
 ## Introduction
 
-PADO Network is a Decentralized Verifiable Confidential Computation Network. PADO will gradually build a decentralized computer unit based on AO, providing trustless and confidential computing capabilities for the AO ecosystem. More importantly,
+PADO Network is a zkFHE Decentralized Computation Network. PADO will gradually build a decentralized computer unit based on AO, providing trustless and confidential computing capabilities for the AO ecosystem.
 
-PADO will use the Arweave blockchain as a privacy data storage layer. Users can encrypt their own data and store it securely on the Arweave blockchain through PADO's zkFHE technology. Any confidential computation request within the AO ecosystem can be sent to the zkFHE computing nodes of PADO Network through the AO.
+More importantly, PADO will use the Arweave blockchain as a privacy data storage layer. Users can encrypt their own data and store it securely on the Arweave blockchain through PADO's zkFHE technology. Any confidential computation request within the AO ecosystem can be sent to the zkFHE computing nodes of PADO Network through the AO.
 
 ## Why PADO and AO
 
@@ -56,6 +56,26 @@ The [WASM wrapper](./lib/lhe/README.md) for [threshold-zk-LHE](https://github.co
 
 ## Architecture
 
-![pado-ao](./pictures/pado-ao.png)
+![pado-ao](./pictures/pado-ao.jpg)
 
-## Main types and interface specifications
+### Register PADO Node
+
+After PADO Node is started, it needs to be registered in the Node Registry Process in AO. The registered information includes name, description, publickey and owner address, etc.
+
+### Upload Data
+
+Data Provider can upload encrypted data through dapp developed based on PADO SDK and set data prices at the same time. The data encrypted by the FHE algorithm and the PADO Node public key will be uploaded to Arweave, and the data information will be registered to AO's Data Registry Process.
+
+### Submit Task
+
+Data User submits computation tasks with Data User Public Key through the dapp developed based on PADO SDK, and pays a certain computation and data fee. The computation tasks will be submitted to AO's Task Process.
+
+### Get and Run Task
+
+PADO Node obtains computing tasks from the Task Process in AO, uses the zkFHE algorithm to run the tasks, and reports the results to the Task Process after running.
+
+Task Process verifies the results, and after passing the verification, the fee is distributed to the Data Provider and PADO Node.
+
+### Get Data
+
+Data User obtains encrypted data from Arweave, obtains task results and data information from Process, and then uses the FHE algorithm and Data User Public Key in the SDK to decrypt the results.
