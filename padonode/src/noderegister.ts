@@ -33,10 +33,19 @@ async function test() {
         const wallet = JSON.parse(readFileSync(walletpath).toString());
         const signer = createDataItemSigner(wallet);
 
-        const res1 = await registerPublicKey(name, key.pk, signer);
-        console.log(`res1=${res1}`);
-        const res2 = await updatePublicKey(name, key.pk, signer);
-        console.log(`res2=${res2}`);
+        try {
+            const res1 = await registerPublicKey(name, key.pk, signer);
+            console.log(`res1=${res1}`);
+        } catch (e) {
+            console.log("registerPublicKey exception:", e);
+        }
+
+        try {
+            const res2 = await updatePublicKey(name, key.pk, signer);
+            console.log(`res2=${res2}`);
+        } catch (e) {
+            console.log("updatePublicKey exception:", e);
+        }
     }, 1000)
 }
 test();

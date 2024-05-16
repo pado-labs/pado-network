@@ -2,14 +2,9 @@ import { createDataItemSigner } from "@permaweb/aoconnect";
 import { getPendingTasks, reportResult } from "pado-ao-sdk/processes/tasks";
 import { getDataById } from "pado-ao-sdk/processes/dataregistry";
 import { reencrypt } from "pado-ao-sdk/algorithm";
+import { NODE_INDICES } from "pado-ao-sdk/config";
 import { readFileSync } from "node:fs";
 import { exit } from "node:process";
-
-
-const NODE_INDICES = new Map();
-NODE_INDICES.set("testnode1", 0);
-NODE_INDICES.set("testnode2", 1);
-NODE_INDICES.set("testnode3", 2);
 
 /**
  * 
@@ -66,7 +61,7 @@ async function doTask(name: string, sk: string, signer: any) {
         {
             var encSks = dataResObj["encSks"];
             const encSksObj = JSON.parse(encSks);
-            let encSk = encSksObj[index];
+            let encSk = encSksObj[index-1];
 
             /// 2. do reencrypt
             var threshold = { t: inputDataObj["t"], n: inputDataObj["n"], indices: inputDataObj["indices"] };
