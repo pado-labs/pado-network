@@ -30,6 +30,23 @@ PADO has long been dedicated to constructing a cryptographic infrastructure for 
 
 Looking ahead, we envision a future where every user can safeguard their data sovereignty through blockchain and cryptography.
 
+## Roles
+
+There are three roles in PADO Network, namely `PADO Node`, `Data Provider` and `Data User`.
+
+### PADO Node
+
+`PADO Node` provides computation services. It publishes its public key for `Data Provider` to encrypt data and reencrypts the encrypted data by `Data Provider` using the public key of `Data User`.
+
+### Data Provider
+
+`Data Provider` is the owner of `Data`. It encrypts data using the public keys of `Data Provder` and publishes it on Arweave.
+
+### Data User
+
+`Data User` is the consumer of `Data`. It submits a task containing its public key to `PADO Node` and decrypts the reencrypted data to get the plain data provided by `Data Provider`.
+
+
 ## Components
 
 PADO Network consists of three parts: PADO AO SDK, PADO AO Process and PADO Node.
