@@ -115,6 +115,6 @@ async function test() {
             console.log("doTask exception:", e);
         }
         test();
-    }, 3000)
+    }, 1000)
 }
 test();
