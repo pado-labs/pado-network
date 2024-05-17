@@ -40,7 +40,7 @@ There are three roles in PADO Network, namely `PADO Node`, `Data Provider` and `
 
 ### Data Provider
 
-`Data Provider` is the owner of `Data`. It encrypts data using the public keys of `Data Provder` and publishes it on Arweave.
+`Data Provider` is the owner of `Data`. It encrypts data using the public keys of `PADO Node` and publishes it on Arweave.
 
 ### Data User
 
