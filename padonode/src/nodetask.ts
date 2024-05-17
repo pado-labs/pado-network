@@ -2,7 +2,6 @@ import { createDataItemSigner } from "@permaweb/aoconnect";
 import { getPendingTasks, reportResult } from "pado-ao-sdk/processes/tasks";
 import { getDataById } from "pado-ao-sdk/processes/dataregistry";
 import { reencrypt } from "pado-ao-sdk/algorithm";
-import { NODE_INDICES } from "pado-ao-sdk/config";
 import { readFileSync } from "node:fs";
 import { exit } from "node:process";
 
@@ -18,12 +17,6 @@ import { exit } from "node:process";
  * @param sk - the node secert key
  */
 async function doTask(name: string, sk: string, signer: any) {
-    let index = NODE_INDICES.get(name);
-    if (typeof (index) == "undefined") {
-        console.log("Can not get node index by", name, "from", Object.fromEntries(NODE_INDICES));
-        return;
-    }
-
     /// 1. fetch pending task(s)
     const pendingTasks = await getPendingTasks();
     let pendingTasksObj = Object();
@@ -51,20 +44,41 @@ async function doTask(name: string, sk: string, signer: any) {
 
         const dataRes = await getDataById(dataId);
         let dataResObj = Object();
+        let exData = Object();
         try {
             dataResObj = JSON.parse(dataRes);
+            exData = JSON.parse(dataResObj.data);
         } catch (e) {
             console.log("getDataById JSON.parse(dataRes) exception:", e);
             return;
         }
+        let policy = exData.policy;
+        let indices = exData.policy.indices;
+        let names = exData.policy.names;
+        if (indices.length != names.length) {
+            console.log(`indices.length(${indices.length}) != names.length(${names.length})`);
+            return;
+        }
+
         // console.log("doTask Data=", dataResObj);
         {
-            var encSks = dataResObj["encSks"];
-            const encSksObj = JSON.parse(encSks);
-            let encSk = encSksObj[index-1];
+            var encSksObj = exData["encSks"];
+            let encSk = "";
+            for (var k = 0; k < names.length; k++) {
+                if (names[k] == name) {
+                    encSk = encSksObj[indices[k] - 1];
+                    console.log(names[k], indices[k], name);
+                    break;
+                }
+            }
+
+            if (encSk == "") {
+                console.log("can not found nodename:", name);
+                return;
+            }
 
             /// 2. do reencrypt
-            var threshold = { t: inputDataObj["t"], n: inputDataObj["n"], indices: inputDataObj["indices"] };
+            var threshold = { t: policy.t, n: policy.n, indices: policy.indices };
             const enc_sk = encSk;
             const node_sk = sk;
             const consumer_pk = inputDataObj["consumerPk"];
@@ -104,6 +118,3 @@ async function test() {
     }, 3000)
 }
 test();
-
-
-
