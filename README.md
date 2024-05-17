@@ -36,7 +36,7 @@ There are three roles in PADO Network, namely `PADO Node`, `Data Provider` and `
 
 ### PADO Node
 
-`PADO Node` provides computation services. It publishes its public key for `Data Provider` to encrypt data and reencrypts the encrypted data by `Data Provider` using the public key of `Data User`.
+`PADO Node` provides computation services. It publishes its public key for `Data Provider` to encrypt data and reencrypts the encrypted data by `Data Provider` using its private key and the public key of `Data User`.
 
 ### Data Provider
 
@@ -44,7 +44,7 @@ There are three roles in PADO Network, namely `PADO Node`, `Data Provider` and `
 
 ### Data User
 
-`Data User` is the consumer of `Data`. It submits a task containing its public key to `PADO Node` and decrypts the reencrypted data to get the plain data provided by `Data Provider`.
+`Data User` is the consumer of `Data`. It submits a task containing its public key to `PADO Node` and decrypts the reencrypted data with its private key to get the plain data provided by `Data Provider`.
 
 
 ## Components
