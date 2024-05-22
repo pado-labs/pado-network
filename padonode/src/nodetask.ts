@@ -1,8 +1,8 @@
 import { createDataItemSigner } from "@permaweb/aoconnect";
-import { getPendingTasks, reportResult } from "pado-ao-sdk/processes/tasks";
-import { getDataById } from "pado-ao-sdk/processes/dataregistry";
-import { nodes } from "pado-ao-sdk/processes/noderegistry";
-import { reencrypt } from "pado-ao-sdk/algorithm";
+import { getPendingTasks, reportResult } from "@padolabs/pado-ao-sdk/dist/processes/tasks";
+import { getDataById } from "@padolabs/pado-ao-sdk/dist/processes/dataregistry";
+import { nodes } from "@padolabs/pado-ao-sdk/dist/processes/noderegistry";
+import { reencrypt } from "@padolabs/pado-ao-sdk/dist/algorithm";
 import { readFileSync } from "node:fs";
 import { exit } from "node:process";
 

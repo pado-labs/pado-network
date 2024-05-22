@@ -4,8 +4,7 @@
 
 
 ```sh
-npm install
-npm run build
+npm install --save @padolabs/pado-ao-sdk
 ```
 
 ## Key and Wallet
