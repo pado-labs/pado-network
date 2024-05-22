@@ -1,18 +1,19 @@
 import { createDataItemSigner } from "@permaweb/aoconnect";
-import { register } from "pado-ao-sdk/processes/noderegistry";
+import { update } from "pado-ao-sdk/processes/noderegistry";
 import { readFileSync } from "node:fs";
 import { exit } from "node:process";
 
 
 /**
  * 
- * Register node public key
+ * Update node public key
  * 
  * @param name - the node name
  * @param pk - the node public key
  */
-async function registerPublicKey(name: string, pk: string, signer: any) {
-    return await register(name, pk, `the desc of ${name}`, signer);
+
+async function updatePublicKey(name: string, pk: string, signer: any) {
+    return await update(name, pk, `the desc of ${name}`, signer);
 }
 
 async function main() {
@@ -31,10 +32,10 @@ async function main() {
         const signer = createDataItemSigner(wallet);
 
         try {
-            const res = await registerPublicKey(name, key.pk, signer);
+            const res = await updatePublicKey(name, key.pk, signer);
             console.log(`res=${res}`);
         } catch (e) {
-            console.log("registerPublicKey exception:", e);
+            console.log("updatePublicKey exception:", e);
         }
     }, 1000)
 }

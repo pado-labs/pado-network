@@ -1,6 +1,7 @@
 import { createDataItemSigner } from "@permaweb/aoconnect";
 import { getPendingTasks, reportResult } from "pado-ao-sdk/processes/tasks";
 import { getDataById } from "pado-ao-sdk/processes/dataregistry";
+import { nodes } from "pado-ao-sdk/processes/noderegistry";
 import { reencrypt } from "pado-ao-sdk/algorithm";
 import { readFileSync } from "node:fs";
 import { exit } from "node:process";
@@ -28,6 +29,8 @@ async function doTask(name: string, sk: string, signer: any) {
     }
     // console.log("doTask pendingTasks=", pendingTasks);
     for (var i in pendingTasksObj) {
+        console.log("doTask DateTime:", new Date());
+
         var task = pendingTasksObj[i];
         // console.log("doTask task=", task);
 
@@ -94,27 +97,59 @@ async function doTask(name: string, sk: string, signer: any) {
 
 }
 
-const args = process.argv.slice(2)
-if (args.length < 3) {
-    console.log("args: <name> <keyfile> <walletpath>");
-    exit(2);
+async function getNodeName(pk: string): Promise<string> {
+    let nodesObj = Object();
+    try {
+        let nodesres = await nodes();
+        nodesObj = JSON.parse(nodesres);
+    } catch (e) {
+        console.error("getNodeName nodes() exception:", e);
+        return "";
+    }
+
+    for (let i in nodesObj) {
+        const node = nodesObj[i];
+        if (node.publickey == pk) {
+            return node.name;
+        }
+    }
+
+    console.error("getNodeName cannot found node name by public key, please register node public key first.");
+    return "";
 }
-let name = args[0];
-let keyfile = args[1];
-let walletpath = args[2];
 
-const key = JSON.parse(readFileSync(keyfile).toString());
-const wallet = JSON.parse(readFileSync(walletpath).toString());
-const signer = createDataItemSigner(wallet);
 
-async function test() {
+async function do_task(name: string, sk: string, signer: any) {
     setTimeout(async () => {
         try {
-            await doTask(name, key.sk, signer);
+            await doTask(name, sk, signer);
         } catch (e) {
             console.log("doTask exception:", e);
         }
-        test();
+        await do_task(name, sk, signer);
     }, 1000)
 }
-test();
+
+
+async function main() {
+    const args = process.argv.slice(2)
+    if (args.length < 2) {
+        console.log("args: <keyfile> <walletpath>");
+        exit(2);
+    }
+    let keyfile = args[0];
+    let walletpath = args[1];
+
+    const key = JSON.parse(readFileSync(keyfile).toString());
+    const wallet = JSON.parse(readFileSync(walletpath).toString());
+    const signer = createDataItemSigner(wallet);
+
+
+    let name = await getNodeName(key.pk);
+    if (name == "") {
+        exit(1);
+    }
+
+    await do_task(name, key.sk, signer);
+}
+main();
