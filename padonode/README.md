@@ -59,15 +59,15 @@ Register the node's public key to ao process.
 
 
 ```sh
-node ./dist/noderegister.js <keyfile> <walletpath> <name>
+node ./dist/noderegister.js <keyfile> <walletpath> <name> [<desc>]
 ```
 
 - keyfile: your key file.
 - walletpath: your Arweave wallet file path.
 - name: take a node name of your liking.
+- desc: a description for the node. The default value is `the description of ${name}`.
 
-If the output is like `already register ...`, it means that this node name has already been registered.
-
+If the output is like `register ... by ...`, it means that the node has been successfully registered. If the output is like `already register ...`, it means that this node name has already been registered.
 
 <br/>
 

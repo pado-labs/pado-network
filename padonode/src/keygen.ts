@@ -1,6 +1,6 @@
 import { exit } from "node:process";
-import { generateKey } from "pado-ao-sdk/index";
 import { writeFileSync } from "node:fs";
+import { generateKey } from "./index";
 
 async function main() {
     const args = process.argv.slice(2)

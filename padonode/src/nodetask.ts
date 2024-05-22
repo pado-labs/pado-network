@@ -97,6 +97,12 @@ async function doTask(name: string, sk: string, signer: any) {
 
 }
 
+/**
+ * 
+ * Get node name by public key
+ * 
+ * @param pk - the node public key
+ */
 async function getNodeName(pk: string): Promise<string> {
     let nodesObj = Object();
     try {
