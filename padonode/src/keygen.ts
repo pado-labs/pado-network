@@ -13,6 +13,6 @@ async function main() {
     let key = await generateKey();
     writeFileSync(keyfile, JSON.stringify(key));
     console.log(`The key has been stored into ${keyfile}.`);
-    console.log(`IMPORTANT! Don't lose this file! Keep it safe!`);
+    console.log(`IMPORTANT! Don't lose this file and save it to a safe place!`);
 }
 main();
