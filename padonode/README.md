@@ -1,13 +1,6 @@
 # pado-node
 
-
-## Quick Start
-
-
-### Building
-
-
-**NOTE:** the package `pado-ao-sdk` have not published, you should use `npm link` or copy the pado-ao-sdk's `dist/` folder to `./node_modules/` and rename to `pado-ao-sdk`.
+## Building
 
 
 ```sh
@@ -15,31 +8,81 @@ npm install
 npm run build
 ```
 
+## Key and Wallet
 
-### KeyGen
+### Generate Key
 
-```sh
-node ./dist/keygen.js <name>
-```
-
-
-## Register public key
-
-
+Generate a pair of keys(public key and secret key) for encryption and decryption and store them to a file.
 
 ```sh
-node ./dist/noderegister.js <name> <keyfile> <walletpath>
+node ./dist/keygen.js <keyfile>
 ```
+
+- keyfile: a json file path to store the keys.
+
+
+**IMPORTANT!** Don't lose this file and save it to a safe place!
+
+
+
+### Create Wallet (Optional)
+
+If you don't have an Arweave wallet, you can install one from [ArConnect](https://www.arconnect.io/download), and then export the wallet from ArConnect and store it to somewhere.
+
+Alternatively, it is possible to generate an Arweave wallet with the following command:
+
+```sh
+node -e "require('arweave').init({}).wallets.generate().then(JSON.stringify).then(console.log.bind(console))" > wallet.json
+```
+
+**IMPORTANT!** Don't lose this file and save it to a safe place!
+
+
+
+## Register Node Public Key
+
+
+**NOTE:** Please contact [PADO](https://discord.gg/YxJftNRxhh) to add your wallet address to the **WHITELIST** before being able to successfully register!
+
+You can get you Arweave wallet address from ArConnect or by:
+
+```sh
+node ./dist/getwalletaddress.js <walletpath>
+```
+
+- walletpath: your Arweave wallet file path.
+
+
+<br/>
+
+Register the node's public key to ao process.
+
+
+```sh
+node ./dist/noderegister.js <keyfile> <walletpath> <name> [<desc>]
+```
+
+- keyfile: your key file.
+- walletpath: your Arweave wallet file path.
+- name: take a node name of your liking.
+- desc: a description for the node. The default value is `the description of ${name}`.
+
+If the output is like `register ... by ...`, it means that the node has been successfully registered. If the output is like `already register ...`, it means that this node name has already been registered.
+
+<br/>
+
+In general, you only need to perform the above steps once.
 
 
 ## Do task
 
+Once successfully registered, you can start the task program.
 
 ```sh
-node ./dist/nodetask.js <name> <keyfile> <walletpath>
+node ./dist/nodetask.js <keyfile> <walletpath>
 ```
 
-- get a task
-- do re-encrypt
-- submit result
+- keyfile: your key file.
+- walletpath: your Arweave wallet file path.
+
 

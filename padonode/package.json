@@ -1,5 +1,5 @@
 {
-  "name": "pado-node",
+  "name": "@padolabs/pado-node",
   "version": "0.1.0",
   "description": "PADO Node",
   "main": "index.js",
