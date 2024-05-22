@@ -1,7 +1,7 @@
 import { createDataItemSigner } from "@permaweb/aoconnect";
 import { readFileSync } from "node:fs";
 import { exit } from "node:process";
-import { updatePublicKey } from "./index";
+import { updateNode } from "./index";
 
 
 async function main() {
@@ -21,10 +21,10 @@ async function main() {
     const signer = createDataItemSigner(wallet);
 
     try {
-        const res = await updatePublicKey(name, desc, signer);
-        console.log(`updatePublicKey res=${res}`);
+        const res = await updateNode(name, desc, signer);
+        console.log(`updateNode res=${res}`);
     } catch (e) {
-        console.log("updatePublicKey exception:", e);
+        console.log("updateNode exception:", e);
     }
 }
 main();
