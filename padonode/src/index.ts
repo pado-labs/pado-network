@@ -1,3 +1,4 @@
-export { generateKey } from "pado-ao-sdk/index";
-export { register as registerPublicKey } from "pado-ao-sdk/processes/noderegistry";
-export { update as updatePublicKey } from "pado-ao-sdk/processes/noderegistry";
+export { generateKey } from "@padolabs/pado-ao-sdk";
+export { register as registerNode } from "@padolabs/pado-ao-sdk/dist/processes/noderegistry";
+export { update as updateNode } from "@padolabs/pado-ao-sdk/dist/processes/noderegistry";
+export { deleteNode } from "@padolabs/pado-ao-sdk/dist/processes/noderegistry";

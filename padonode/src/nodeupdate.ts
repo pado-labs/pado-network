@@ -1,32 +1,30 @@
 import { createDataItemSigner } from "@permaweb/aoconnect";
 import { readFileSync } from "node:fs";
 import { exit } from "node:process";
-import { updatePublicKey } from "./index";
+import { updateNode } from "./index";
 
 
 async function main() {
     const args = process.argv.slice(2)
-    if (args.length < 3) {
-        console.log("args: <keyfile> <walletpath> <name> [<desc>]");
+    if (args.length < 2) {
+        console.log("args: <walletpath> <name> [<desc>]");
         exit(2);
     }
-    let keyfile = args[0];
-    let walletpath = args[1];
-    let name = args[2];
+    let walletpath = args[0];
+    let name = args[1];
     let desc = `the description of ${name}`;
-    if (args.length >= 4) {
-        desc = args[3];
+    if (args.length >= 3) {
+        desc = args[2];
     }
 
-    const key = JSON.parse(readFileSync(keyfile).toString());
     const wallet = JSON.parse(readFileSync(walletpath).toString());
     const signer = createDataItemSigner(wallet);
 
     try {
-        const res = await updatePublicKey(name, key.pk, desc, signer);
-        console.log(`updatePublicKey res=${res}`);
+        const res = await updateNode(name, desc, signer);
+        console.log(`updateNode res=${res}`);
     } catch (e) {
-        console.log("updatePublicKey exception:", e);
+        console.log("updateNode exception:", e);
     }
 }
 main();
