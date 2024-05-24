@@ -75,13 +75,14 @@ In general, you only need to perform the above steps once.
 
 ## Do task
 
-Once successfully registered, you can start the task program.
+Once successfully registered, you can start the task program. If necessary, e.g. in a production environment, it is recommended to start the program as a background process.
 
 ```sh
 node ./dist/nodetask.js <keyfile> <walletpath>
+# If you want to start it as a background process:
+# nohup ./dist/nodetask.js <keyfile> <walletpath> >logfile &
 ```
 
 - keyfile: your key file.
 - walletpath: your Arweave wallet file path.
-
 
