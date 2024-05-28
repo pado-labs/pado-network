@@ -131,7 +131,7 @@ and you can use `docker logs pado-network` to check the log of the container.
 
 ### Start with docker-compose
 
-> NOTE: A simpler deployment method is to use docker-compose, here is an example.
+> NOTE: A simpler deployment method is to use docker-compose([Install Compose](https://docs.docker.com/compose/install/standalone/)). here is an example.
 
 ```yaml
 version: "3"
