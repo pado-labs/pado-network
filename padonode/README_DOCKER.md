@@ -108,7 +108,7 @@ In general, you only need to perform the above steps once.
 
 Once successfully registered, you can start the task program.
 ```sh
-docker run -d -v <CONFIG_PATH_ON_HOST>:<CONFIG_PATH_IN_CONTAINER> -e KEY_FILE_PATH=<KEY_FILE_PATH_IN_CONTAINER> -e WALLET_PATH=<WALLET_PATH_IN_CONTAINER>  --name pado-network padolabs/pado-network:latest
+docker run -d -v <CONFIG_PATH_ON_HOST>:<CONFIG_PATH_IN_CONTAINER> -e KEY_FILE_PATH=<KEY_FILE_PATH_IN_CONTAINER> -e WALLET_PATH=<WALLET_PATH_IN_CONTAINER>  --name pado-network --restart always padolabs/pado-network:latest
 ```
 variables:
 - CONFIG_PATH_ON_HOST: Directory on the host machine to mount the container to.
