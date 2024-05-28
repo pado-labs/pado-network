@@ -1,20 +1,33 @@
-import { createDataItemSigner } from "@permaweb/aoconnect";
-import { readFileSync } from "node:fs";
-import { exit } from "node:process";
-import { updateNode } from "./index";
+import {createDataItemSigner} from "@permaweb/aoconnect";
+import {readFileSync} from "node:fs";
+import {exit} from "node:process";
+import {updateNode} from "./index";
+import process from "node:process";
 
 
 async function main() {
-    const args = process.argv.slice(2)
-    if (args.length < 2) {
-        console.log("args: <walletpath> <name> [<desc>]");
-        exit(2);
-    }
-    let walletpath = args[0];
-    let name = args[1];
-    let desc = `the description of ${name}`;
-    if (args.length >= 3) {
-        desc = args[2];
+    let walletpath;
+    let name;
+    let desc;
+    if (process.env.WALLET_PATH && process.env.NODE_NAME) {
+        walletpath = process.env.WALLET_PATH;
+        name = process.env.NODE_NAME;
+        desc = `the description of ${name}`;
+        if(process.env.NODE_DESC){
+            desc = process.env.NODE_DESC;
+        }
+    } else {
+        const args = process.argv.slice(2)
+        if (args.length < 2) {
+            console.log("args: <walletpath> <name> [<desc>]");
+            exit(2);
+        }
+        walletpath = args[0];
+        name = args[1];
+        desc = `the description of ${name}`;
+        if (args.length >= 3) {
+            desc = args[2];
+        }
     }
 
     const wallet = JSON.parse(readFileSync(walletpath).toString());
@@ -27,4 +40,5 @@ async function main() {
         console.log("updateNode exception:", e);
     }
 }
+
 main();

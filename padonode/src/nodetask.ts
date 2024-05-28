@@ -1,19 +1,20 @@
-import { createDataItemSigner } from "@permaweb/aoconnect";
-import { getPendingTasks, reportResult } from "@padolabs/pado-ao-sdk/dist/processes/tasks";
-import { getDataById } from "@padolabs/pado-ao-sdk/dist/processes/dataregistry";
-import { nodes } from "@padolabs/pado-ao-sdk/dist/processes/noderegistry";
-import { reencrypt } from "@padolabs/pado-ao-sdk/dist/algorithm";
-import { readFileSync } from "node:fs";
-import { exit } from "node:process";
+import {createDataItemSigner} from "@permaweb/aoconnect";
+import {getPendingTasks, reportResult} from "@padolabs/pado-ao-sdk/dist/processes/tasks";
+import {getDataById} from "@padolabs/pado-ao-sdk/dist/processes/dataregistry";
+import {nodes} from "@padolabs/pado-ao-sdk/dist/processes/noderegistry";
+import {reencrypt} from "@padolabs/pado-ao-sdk/dist/algorithm";
+import {readFileSync} from "node:fs";
+import {exit} from "node:process";
+import process from "node:process";
 
 /**
- * 
+ *
  * Do task
- * 
+ *
  * 1. fetch pending task(s)
  * 2. do reencrypt
  * 3. submit result
- * 
+ *
  * @param name - the node name
  * @param sk - the node secert key
  */
@@ -81,7 +82,7 @@ async function doTask(name: string, sk: string, signer: any) {
             }
 
             /// 2. do reencrypt
-            var threshold = { t: policy.t, n: policy.n, indices: policy.indices };
+            var threshold = {t: policy.t, n: policy.n, indices: policy.indices};
             const enc_sk = encSk;
             const node_sk = sk;
             const consumer_pk = inputDataObj["consumerPk"];
@@ -98,9 +99,9 @@ async function doTask(name: string, sk: string, signer: any) {
 }
 
 /**
- * 
+ *
  * Get node name by public key
- * 
+ *
  * @param pk - the node public key
  */
 async function getNodeName(pk: string): Promise<string> {
@@ -138,19 +139,23 @@ async function do_task(name: string, sk: string, signer: any) {
 
 
 async function main() {
-    const args = process.argv.slice(2)
-    if (args.length < 2) {
-        console.log("args: <keyfile> <walletpath>");
-        exit(2);
+    let keyfile;
+    let walletpath
+    if (process.env.KEY_FILE_PATH && process.env.WALLET_PATH) {
+        keyfile = process.env.KEY_FILE_PATH;
+        walletpath = process.env.WALLET_PATH;
+    } else {
+        const args = process.argv.slice(2)
+        if (args.length < 2) {
+            console.log("args: <keyfile> <walletpath>");
+            exit(2);
+        }
+        keyfile = args[0];
+        walletpath = args[1];
     }
-    let keyfile = args[0];
-    let walletpath = args[1];
-
     const key = JSON.parse(readFileSync(keyfile).toString());
     const wallet = JSON.parse(readFileSync(walletpath).toString());
     const signer = createDataItemSigner(wallet);
-
-
     let name = await getNodeName(key.pk);
     if (name == "") {
         exit(1);
@@ -158,4 +163,5 @@ async function main() {
 
     await do_task(name, key.sk, signer);
 }
+
 main();
