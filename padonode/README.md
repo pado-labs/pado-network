@@ -1,10 +1,12 @@
 # pado-node
 
+**NOTE:** If you want to run pado-network node in docker, please refer to [Deploy by Docker](./README_DOCKER.md).
+
 ## Building
 
 
 ```sh
-npm install --save @padolabs/pado-ao-sdk
+npm install
 ```
 
 ## Key and Wallet
@@ -41,7 +43,7 @@ node -e "require('arweave').init({}).wallets.generate().then(JSON.stringify).the
 ## Register Node Public Key
 
 
-**NOTE:** Please contact [PADO](https://discord.gg/YxJftNRxhh) to add your wallet address to the **WHITELIST** before being able to successfully register!
+**NOTE:** Please contact [PADO Labs](https://discord.gg/YxJftNRxhh) to add your wallet address to the **WHITELIST** before being able to successfully register!
 
 You can get you Arweave wallet address from ArConnect or by:
 

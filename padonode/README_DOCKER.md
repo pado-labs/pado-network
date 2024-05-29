@@ -3,7 +3,7 @@
 > **NOTE:** This is a quick start guide for Docker. If you want to run pado-network node on your own machine, please refer to [Quick Start](./README.md)
 
 ### Install Docker
-Please refer to official documentation: [Install Docker Engine](https://docs.docker.com/engine/install/)
+Please refer to official documentation: [Install Docker Engine](https://docs.docker.com/engine/install/).
 
 ### Pull Image
 ```shell
@@ -25,7 +25,7 @@ for example:
 ```sh
 docker run --rm -v ./config:/pado-network/config/ -e KEY_FILE_PATH=/pado-network/config/pado-network-key.json --name pado-network padolabs/pado-network:latest sh -c "node /pado-network/dist/keygen.js"
 ```
-You will find `pado-network-key.json` in `./config`
+You can find `pado-network-key.json` in `./config` on the host.
 
 **IMPORTANT!** Don't lose this file and save it to a safe place!
 
@@ -49,14 +49,14 @@ for example:
 ```sh
 docker run --rm -v ./config:/pado-network/config/ --name pado-network padolabs/pado-network:latest sh -c "node -e \"require('arweave').init({}).wallets.generate().then(JSON.stringify).then(console.log.bind(console))\" > /pado-network/config/wallet.json"
 ```
-You will find `wallet.json` in `./config`
+You can find `wallet.json` in `./config` on the host.
 
 **IMPORTANT!** Don't lose this file and save it to a safe place!
 
 ## Register Node Public Key
 
 
-**NOTE:** Please contact [PADO](https://discord.gg/YxJftNRxhh) to add your wallet address to the **WHITELIST** before being able to successfully register!
+**NOTE:** Please contact [PADO Labs](https://discord.gg/YxJftNRxhh) to add your wallet address to the **WHITELIST** before being able to successfully register!
 
 You can get you Arweave wallet address from ArConnect or by:
 
