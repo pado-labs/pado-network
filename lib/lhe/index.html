@@ -44,6 +44,11 @@
 
     // test
     document.getElementById("testall").onclick = function () { testall(); };
+    Module = {};
+    Module.onRuntimeInitialized = async () => {
+      console.log("\nModule Initialized OK.");
+    };
+
     function testall() {
       let t = 2;
       let n = 3;
@@ -70,18 +75,34 @@
 
 
       console.log("2. data provider encrypt the message")
-      var msg = "this is the message";
+      var msg = new Uint8Array(12);
+      for (let i = 0; i < msg.length; i++) {
+        msg[i] = Math.floor(Math.random() * 100);
+      }
+      console.log("msg:", msg);
+
       var node_pks = [node_key1.pk, node_key2.pk, node_key3.pk];
+
+      let msg_len = msg.length;
+      let msg_ptr = _malloc(msg_len);
+      let msg_buffer = new Uint8Array(wasmMemory.buffer, msg_ptr, msg_len);
+      msg_buffer.set(msg)
       var encrypt_param = {
         t: t,
         n: n,
         indices: indices,
         node_pks: node_pks,
-        msg: stringToByte(msg),
+        msg_ptr: msg_ptr,
+        msg_len: msg_len,
       };
       console.log('encrypt_param', encrypt_param);
       let encrypt_result = encrypt(encrypt_param);
       console.log('encrypt_result', encrypt_result);
+      _free(msg_ptr);
+
+      let dataview = new Uint8Array(wasmMemory.buffer, encrypt_result.emsg_ptr, encrypt_result.emsg_len);
+      let enc_msg = new Uint8Array(dataview);
+      _free(encrypt_result.emsg_ptr);
 
 
       console.log("3. data consumer init, keygen")
@@ -142,6 +163,11 @@
       // you can also choice [1, 2], [1, 3] or [2, 3], like:
       // let reenc_sks = [c2.reenc_sk, c3.reenc_sk];
       // let chosen_indices = [2, 3];
+
+      let emsg_len = enc_msg.length;
+      let emsg_ptr = _malloc(emsg_len);
+      let emsg_buffer = new Uint8Array(wasmMemory.buffer, emsg_ptr, emsg_len);
+      emsg_buffer.set(enc_msg)
       var decrypt_param = {
         t: t,
         n: n,
@@ -151,10 +177,20 @@
         consumer_sk: consumer_key.sk,
         nonce: encrypt_result.nonce,
         enc_msg: encrypt_result.enc_msg,
+        emsg_ptr: emsg_ptr,
+        emsg_len: emsg_len,
       };
       console.log('decrypt_param', decrypt_param);
-      var msg = decrypt(decrypt_param);
-      console.log("decrypted_msg:", msg);
+      var decrypt_result = decrypt(decrypt_param);
+      console.log('decrypt_result', decrypt_result);
+      _free(emsg_ptr);
+
+      let dataview2 = new Uint8Array(wasmMemory.buffer, decrypt_result.msg_ptr, decrypt_result.msg_len);
+      let msg2 = new Uint8Array(dataview2);
+      _free(decrypt_result.msg_ptr);
+
+      console.log("decrypted_msg:", msg2);
+      console.log(" original_msg:", msg);
     }
 
     // helper functions

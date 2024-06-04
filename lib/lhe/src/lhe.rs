@@ -104,7 +104,8 @@ pub struct EncryptParam {
     n: usize,                    // n >= 3; n >= t >= 1
     indices: Vec<PlainField>,    // pado node index, start from 1
     node_pks: Vec<BFVPublicKey>, // pado node public keys, which length is equal to n
-    msg: Vec<u8>,                // plain message
+    msg_ptr: usize,              // the pointer to plain message
+    msg_len: usize,              // the message size
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -113,7 +114,8 @@ pub struct EncryptParamS {
     n: usize,                 // n >= 3; n >= t >= 1
     indices: Vec<PlainField>, // pado node index, start from 1
     node_pks: Vec<String>,    // pado node public keys, which length is equal to n
-    msg: Vec<u8>,             // plain message
+    msg_ptr: usize,           // the pointer to plain message
+    msg_len: usize,           // the message size
 }
 impl EncryptParam {
     pub fn from_json(param: &str) -> EncryptParam {
@@ -123,12 +125,14 @@ impl EncryptParam {
             let _pk: BFVPublicKey = BFVPublicKey::from_vec(&hex::decode(pk).unwrap());
             node_pks.push(_pk);
         }
+
         EncryptParam {
             t: param.t,
             n: param.n,
             indices: param.indices,
             node_pks: node_pks,
-            msg: param.msg,
+            msg_ptr: param.msg_ptr,
+            msg_len: param.msg_len,
         }
     }
 }
@@ -137,14 +141,16 @@ impl EncryptParam {
 pub struct EncryptResult {
     enc_sks: Vec<BFVCiphertext>, // encrypted secret keys, which length is equal to n
     nonce: Vec<u8>,              // nonce
-    enc_msg: Vec<u8>,            // encrypted message
+    emsg_ptr: usize,             // the pointer to encrypted message
+    emsg_len: usize,             // the message size
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EncryptResultS {
     enc_sks: Vec<String>, // encrypted secret keys, which length is equal to n
     nonce: String,        // nonce
-    enc_msg: String,      // encrypted message
+    emsg_ptr: usize,      // the pointer to encrypted message
+    emsg_len: usize,      // the message size
 }
 
 impl EncryptResult {
@@ -155,12 +161,12 @@ impl EncryptResult {
             enc_sks.push(_enc_sk);
         }
         let nonce = hex::encode(&self.nonce);
-        let enc_msg = hex::encode(&self.enc_msg);
 
         let ret = EncryptResultS {
             enc_sks,
             nonce,
-            enc_msg,
+            emsg_ptr: self.emsg_ptr,
+            emsg_len: self.emsg_len,
         };
         let res = serde_json::to_string(&ret).unwrap();
         res
@@ -170,12 +176,25 @@ impl EncryptResult {
 pub fn _encrypt(param: &EncryptParam) -> EncryptResult {
     let ctx = ThresholdPKE::gen_context(param.n, param.t, param.indices.clone());
 
-    let (enc_sks, nonce, enc_msg) = ThresholdPKE::encrypt_bytes(&ctx, &param.node_pks, &param.msg);
+    let msg_ptr = param.msg_ptr as *mut u8;
+    let msg_len = param.msg_len;
+    let msg0 = std::ptr::slice_from_raw_parts_mut(msg_ptr, msg_len);
+    let msg;
+    unsafe {
+        msg = &*msg0;
+    }
+
+    let (enc_sks, nonce, enc_msg) = ThresholdPKE::encrypt_bytes(&ctx, &param.node_pks, msg);
+
+    let emsg_len = enc_msg.len();
+    let emsg_ptr = enc_msg.as_ptr() as *const u8 as usize;
+    std::mem::forget(enc_msg);
 
     EncryptResult {
         enc_sks,
         nonce: nonce.to_vec(),
-        enc_msg,
+        emsg_ptr: emsg_ptr,
+        emsg_len: emsg_len,
     }
 }
 
@@ -251,7 +270,8 @@ pub struct DecryptParam {
     reenc_sks: Vec<BFVCiphertext>,   // re-encrypted secrect keys
     consumer_sk: BFVSecretKey,       // consumer secrect key
     nonce: Vec<u8>,                  // nonce
-    enc_msg: Vec<u8>,                // encrypted message
+    emsg_ptr: usize,                 // the pointer to encrypted message
+    emsg_len: usize,                 // the message size
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -263,7 +283,8 @@ pub struct DecryptParamS {
     reenc_sks: Vec<String>,          // re-encrypted secrect keys
     consumer_sk: String,             // consumer secrect key
     nonce: String,                   // nonce
-    enc_msg: String,                 // encrypted message
+    emsg_ptr: usize,                 // the pointer to encrypted message
+    emsg_len: usize,                 // the message size
 }
 
 impl DecryptParam {
@@ -278,7 +299,6 @@ impl DecryptParam {
 
         let consumer_sk = try_decompress_sk(&param.consumer_sk);
         let nonce = hex::decode(&param.nonce).unwrap();
-        let enc_msg = hex::decode(&param.enc_msg).unwrap();
         DecryptParam {
             t: param.t,
             n: param.n,
@@ -287,24 +307,42 @@ impl DecryptParam {
             reenc_sks: reenc_sks,
             consumer_sk: consumer_sk,
             nonce: nonce,
-            enc_msg: enc_msg,
+            emsg_ptr: param.emsg_ptr,
+            emsg_len: param.emsg_len,
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DecryptResult {
-    msg: Vec<u8>, // decrypted message
+    msg_ptr: usize, // the pointer to plain message
+    msg_len: usize, // the message size
 }
 
 pub fn _decrypt(param: &DecryptParam) -> DecryptResult {
     let ctx = ThresholdPKE::gen_context(param.n, param.t, param.indices.clone());
 
+    let emsg_ptr = param.emsg_ptr as *mut u8;
+    let emsg_len = param.emsg_len;
+    let emsg0 = std::ptr::slice_from_raw_parts_mut(emsg_ptr, emsg_len);
+    let emsg;
+    unsafe {
+        emsg = &*emsg0;
+    }
+
     let c = ThresholdPKE::combine(&ctx, &param.reenc_sks, &param.chosen_indices);
 
     let nonce = Nonce::clone_from_slice(&param.nonce);
-    let msg = ThresholdPKE::decrypt_bytes(&ctx, &param.consumer_sk, &c, &nonce, &param.enc_msg);
-    DecryptResult { msg }
+    let msg = ThresholdPKE::decrypt_bytes(&ctx, &param.consumer_sk, &c, &nonce, emsg);
+
+    let msg_len = msg.len();
+    let msg_ptr = msg.as_ptr() as *const u8 as usize;
+    std::mem::forget(msg);
+
+    DecryptResult {
+        msg_ptr: msg_ptr,
+        msg_len: msg_len,
+    }
 }
 
 ///
