@@ -63,11 +63,13 @@
 
 ```
 {
-  "t": 2,         // type:number| 
-  "n": 3,         // type:number| n >= 3; n >= t >= 1
-  "indices": [],  // type:number-array| pado node index, start from 1
-  "node_pks": [], // type:string-array| pado node public keys, which length is equal to n
-  "msg": []       // type:byte-array| plain message
+  "t": 2,             // type:number| 
+  "n": 3,             // type:number| n >= 3; n >= t >= 1
+  "indices": [],      // type:number-array| pado node index, start from 1
+  "node_pks": [],     // type:string-array| pado node public keys, which length is equal to n
+  "msg": [],          // type:byte-array| plain message (deprecated)
+  "msg_ptr": number,  // type:number| the pointer to plain message
+  "msg_len": number,  // type:number| the message size
 }
 ```
 
@@ -75,9 +77,11 @@
 
 ```
 {
-  "enc_sks": [],  // type:string-array| encrypted secret keys, which length is equal to n
-  "nonce": "",    // type:string| nonce
-  "enc_msg": ""   // type:string| encrypted message
+  "enc_sks": [],        // type:string-array| encrypted secret keys, which length is equal to n
+  "nonce": "",          // type:string| nonce
+  "enc_msg": "",        // type:string| encrypted message (deprecated)
+  "emsg_ptr": number,   // type:number| the pointer to encrypted message
+  "emsg_len": number,   // type:number| the message size
 }
 ```
 
@@ -129,7 +133,9 @@
   "reenc_sks": [],      // type:string-array| re-encrypted secrect keys
   "consumer_sk": "",    // type:string| consumer secrect key
   "nonce": "",          // type:string| nonce
-  "enc_msg": ""         // type:string| encrypted message
+  "enc_msg": "",        // type:string| encrypted message (deprecated)
+  "emsg_ptr": number,   // type:number| the pointer to encrypted message
+  "emsg_len": number,   // type:number| the message size
 }
 ```
 
@@ -139,7 +145,9 @@
 
 ```
 {
-  "msg": [] // type:byte-array| decrypted message
+  "msg": [],          // type:byte-array| decrypted message (deprecated)
+  "msg_ptr": number,  // type:number| the pointer to plain message
+  "msg_len": number,  // type:number| the message size
 }
 ```
 
