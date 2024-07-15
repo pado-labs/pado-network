@@ -10,9 +10,11 @@
   "author": "PADO Labs",
   "dependencies": {
     "@padolabs/pado-ao-sdk": "^0.1.1",
-    "@permaweb/aoconnect": "^0.0.52"
+    "@permaweb/aoconnect": "^0.0.52",
+    "express": "^4.19.2"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/node": "^20.12.7",
     "ts-node": "^10.9.2",
     "tslib": "^2.6.2",
