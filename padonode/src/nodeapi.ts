@@ -89,7 +89,7 @@ export class NodeApi {
     for (let i = 0; i < this.nodeServices.length; i++) {
       if (this.nodeServices[i].id == id) {
         this.nodeServices[i].status = ServiceStatus[status];
-        return;
+        break;
       }
     }
   }
@@ -103,7 +103,7 @@ export class NodeApi {
     for (let i = 0; i < this.nodeServices.length; i++) {
       if (this.nodeServices[i].id == id) {
         this.nodeServices.splice(i, 1);
-        return;
+        break;
       }
     }
   }
