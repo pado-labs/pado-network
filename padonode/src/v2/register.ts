@@ -120,9 +120,11 @@ const _getPubkeyRegistrationParams = async () => {
 export const registerOperatorInQuorumWithAVSRegistryCoordinator = async () => {
   // @TODO
 
+  console.log('registerOperatorInQuorumWithAVSRegistryCoordinator 1');
   const operatorSignature = await _getOperatorSignatureWithSaltAndExpiry();
   // console.log("operatorSignature:", operatorSignature);
 
+  console.log('registerOperatorInQuorumWithAVSRegistryCoordinator 2');
   const pubkeyRegParams = await _getPubkeyRegistrationParams();
   // console.log("pubkeyRegParams:", pubkeyRegParams);
 
@@ -132,12 +134,14 @@ export const registerOperatorInQuorumWithAVSRegistryCoordinator = async () => {
   // console.log("quorumNumbers:", quorumNumbers);
   // console.log("socket:", socket);
 
+  console.log('registerOperatorInQuorumWithAVSRegistryCoordinator 3');
   try {
     console.log("registerOperator start");
     const tx = await registryContract.registerOperator(quorumNumbers, socket, pubkeyRegParams, operatorSignature);
     console.log("registerOperator tx:\n", tx);
     const receipt = await tx.wait();
     console.log("registerOperator receipt:\n", receipt);
+    console.log("Operator registered on AVS successfully");
   } catch (error) {
     console.log("registerOperator error:\n", error);
     try {
@@ -147,16 +151,17 @@ export const registerOperatorInQuorumWithAVSRegistryCoordinator = async () => {
       console.log("registerOperator.callStatic error:\n", error);
     }
   }
-  console.log("Operator registered on AVS successfully");
 };
 
 const test = async () => {
   console.log("test registerOperator");
 
-  try {
-    await registerAsOperator();
-  } catch (error) {
-    console.log('registerAsOperator error:', error);
+  if (false) {
+    try {
+      await registerAsOperator();
+    } catch (error) {
+      console.log('registerAsOperator error:', error);
+    }
   }
 
   try {
