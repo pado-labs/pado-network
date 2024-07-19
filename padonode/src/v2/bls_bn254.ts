@@ -1,10 +1,4 @@
-import { ethers } from 'ethers'
-const getBytes = ethers.utils.arrayify;
-const hexlify = ethers.utils.hexlify;
-const keccak256 = ethers.utils.keccak256;
-const dataSlice = ethers.utils.hexDataSlice;
-const randomBytes = ethers.utils.randomBytes;
-const solidityPacked = ethers.utils.solidityPack;
+import { dataSlice, hexlify, getBytes, keccak256, randomBytes, solidityPacked } from 'ethers';
 const mcl = require('mcl-wasm')
 import { G1, type G2, type Fr, type Fp, type Fp2 } from 'mcl-wasm'
 
@@ -258,21 +252,18 @@ export class BlsBn254 {
      * Same as eigensdk-go$SignHashedToCurveMessage, see:
      * https://github.com/Layr-Labs/eigensdk-go/blob/1cdf1411d1fb7fb843240292b9ac14a18c74dacd/crypto/bls/attestation.go#L265
      * G1Point(x, y)
-     * @param _x 
-     * @param _y 
+     * @param x 
+     * @param y 
      * @param secret 
      * @returns 
      */
-    public signHashedToCurveMessage(_x: Uint8Array, _y: Uint8Array, secret: Fr) {
-        const x = hexlify(_x);
-        const y = hexlify(_y);
-
+    public signHashedToCurveMessage(x: bigint, y: bigint, secret: Fr) {
         const M: G1 = this.newG1()
         const g1x: Fp = new mcl.Fp()
         const g1y: Fp = new mcl.Fp()
         const g1z: Fp = new mcl.Fp()
-        g1x.setStr(x, 16)
-        g1y.setStr(y, 16)
+        g1x.setStr(x.toString(), 10)
+        g1y.setStr(y.toString(), 10)
         g1z.setInt(1)
         M.setX(g1x)
         M.setY(g1y)

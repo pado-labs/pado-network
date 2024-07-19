@@ -16,7 +16,7 @@
     "@permaweb/aoconnect": "^0.0.52",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
-    "ethers": "^5.7.2",
+    "ethers": "^6.13.1",
     "express": "^4.19.2",
     "mcl-wasm": "^1.4.0"
   },

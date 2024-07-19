@@ -5,10 +5,10 @@ import { getOptValue } from './utils';
 import { avsDirectoryABI } from './abis/avsDirectoryABI'; // Contract: AVSDirectory
 import { delegationABI } from "./abis/delegationABI"; // Contract: DelegationManager
 import { registryABI } from "./abis/registryABI"; // Contract: RegistryCoordinator
-import { contractABI } from './abis/contractABI'; // Contract: ServiceManagerContract
+// import { contractABI } from './abis/contractABI'; // Contract: ServiceManagerContract
 dotenv.config();
 
-const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 const blsSecretKey = process.env.BLS_SECRET_KEY!;
 
@@ -23,7 +23,7 @@ const contractAddress = process.env.CONTRACT_ADDRESS!;
 const avsDirectory = new ethers.Contract(avsDirectoryAddress, avsDirectoryABI, wallet);
 const delegationManager = new ethers.Contract(delegationManagerAddress, delegationABI, wallet);
 const registryContract = new ethers.Contract(registryCoordinatorAddress, registryABI, wallet);
-const contract = new ethers.Contract(contractAddress, contractABI, wallet);
+// const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
 
 /**
@@ -39,8 +39,8 @@ export const registerAsOperator = async () => {
     delegationApprover,
     stakerOptOutWindowBlocks: 0
   };
-  console.log("registeringOperatorDetails", registeringOperatorDetails)
-  console.log("metadataURI", metadataURI)
+  // console.log("registeringOperatorDetails", registeringOperatorDetails)
+  // console.log("metadataURI", metadataURI)
 
   try {
     console.log("registerAsOperator start");
@@ -48,7 +48,7 @@ export const registerAsOperator = async () => {
     // console.log("registerAsOperator tx:\n", tx);
     const receipt = await tx.wait();
     // console.log("registerAsOperator receipt:\n", receipt);
-    console.log("registerAsOperator successfully with transactionHash:", receipt.transactionHash);
+    console.log("registerAsOperator successfully with transaction hash:", receipt.hash);
   } catch (error) {
     console.log("registerAsOperator failed:", error);
   }
@@ -58,7 +58,7 @@ export const registerAsOperator = async () => {
 const _getOperatorSignatureWithSaltAndExpiry = async () => {
   const signatureExpirySeconds = getOptValue(process.env.OPERATOR_SIGNATURE_EXPIRY_SECONDS, 3600);
   const expiry = Math.floor(Date.now() / 1000) + signatureExpirySeconds;
-  const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32));
+  const salt = ethers.hexlify(ethers.randomBytes(32));
 
   // Define the output structure
   let operatorSignature = {
@@ -70,18 +70,19 @@ const _getOperatorSignatureWithSaltAndExpiry = async () => {
   // Calculate the digest hash using the avsDirectory's method
   const digestHash = await avsDirectory.calculateOperatorAVSRegistrationDigestHash(
     wallet.address,
-    contract.address,
+    contractAddress,
     salt,
     expiry
   );
   // console.log("digestHash:", digestHash);
 
   // Sign the digest hash with the operator's private key
-  const signingKey = new ethers.utils.SigningKey(process.env.PRIVATE_KEY!);
-  const signature = signingKey.signDigest(digestHash);
+  const signingKey = new ethers.SigningKey(process.env.PRIVATE_KEY!);
+  const signature = signingKey.sign(digestHash);
 
   // Encode the signature in the required format
-  operatorSignature.signature = ethers.utils.joinSignature(signature);
+  operatorSignature.signature = signature.serialized;
+  // console.log("operatorSignature:", operatorSignature);
 
   return operatorSignature;
 }
@@ -104,8 +105,8 @@ const _getPubkeyRegistrationParams = async () => {
   // console.log("pubkeyRegistrationMessageHash:", pubkeyRegistrationMessageHash);
 
   const { signature } = bls.signHashedToCurveMessage(
-    ethers.utils.arrayify(pubkeyRegistrationMessageHash.X),
-    ethers.utils.arrayify(pubkeyRegistrationMessageHash.Y),
+    pubkeyRegistrationMessageHash.X,
+    pubkeyRegistrationMessageHash.Y,
     secretKey)
   const s = bls.serialiseG1Point(signature);
   // console.log("s:", s);
@@ -136,18 +137,19 @@ export const registerOperatorInQuorumWithAVSRegistryCoordinator = async (
   // console.log("pubkeyRegParams:", pubkeyRegParams);
 
   const socket = getOptValue(process.env.OPERATOR_SOCKET_IP_PORT, "");
+  const quorum = ethers.hexlify(new Uint8Array(quorumNumbers));
 
   try {
     console.log("registerOperator start");
-    const tx = await registryContract.registerOperator(quorumNumbers, socket, pubkeyRegParams, operatorSignature);
+    const tx = await registryContract.registerOperator(quorum, socket, pubkeyRegParams, operatorSignature);
     // console.log("registerOperator tx:\n", tx);
     const receipt = await tx.wait();
     // console.log("registerOperator receipt:\n", receipt);
-    console.log("registerOperator successfully with transactionHash:", receipt.transactionHash);
+    console.log("registerOperator successfully with transaction hash:", receipt.hash);
   } catch (error) {
     console.log("registerOperator error:\n", error);
     try {
-      const tx = await registryContract.callStatic.registerOperator(quorumNumbers, socket, pubkeyRegParams, operatorSignature);
+      const tx = await registryContract.registerOperator.staticCall(quorum, socket, pubkeyRegParams, operatorSignature);
       console.log("registerOperator.callStatic tx:\n", tx);
     } catch (error) {
       console.log("registerOperator.callStatic error:\n", error);
