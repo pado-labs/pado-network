@@ -1,45 +1,64 @@
 import { ethers } from "ethers";
 import * as dotenv from "dotenv";
 import { BlsBn254 } from './bls_bn254';
-import { avsDirectoryABI } from './abis/avsDirectoryABI'; // AVSDirectory
-import { delegationABI } from "./abis/delegationABI"; // DelegationManager
-import { registryABI } from "./abis/registryABI"; // RegistryCoordinator
-import { contractABI } from './abis/contractABI'; // ServiceManagerContract
+import { getOptValue } from './utils';
+import { avsDirectoryABI } from './abis/avsDirectoryABI'; // Contract: AVSDirectory
+import { delegationABI } from "./abis/delegationABI"; // Contract: DelegationManager
+import { registryABI } from "./abis/registryABI"; // Contract: RegistryCoordinator
+import { contractABI } from './abis/contractABI'; // Contract: ServiceManagerContract
 dotenv.config();
 
 const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+const blsSecretKey = process.env.BLS_SECRET_KEY!;
 
+
+// Contracts Address
 const avsDirectoryAddress = process.env.AVS_DIRECTORY_ADDRESS!;
 const delegationManagerAddress = process.env.DELEGATION_MANAGER_ADDRESS!;
 const registryCoordinatorAddress = process.env.REGISTRY_COORDINATOR_ADDRESS!;
 const contractAddress = process.env.CONTRACT_ADDRESS!;
 
+// Contracts
 const avsDirectory = new ethers.Contract(avsDirectoryAddress, avsDirectoryABI, wallet);
 const delegationManager = new ethers.Contract(delegationManagerAddress, delegationABI, wallet);
 const registryContract = new ethers.Contract(registryCoordinatorAddress, registryABI, wallet);
 const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
-const blsSecretKey = process.env.BLS_SECRET_KEY as `0x${string}`;
 
 /**
  * Operator Registration to EigenLayer
- * @TODO params
  */
 export const registerAsOperator = async () => {
-  const tx1 = await delegationManager.registerAsOperator({
-    earningsReceiver: await wallet.address,
-    delegationApprover: "0x0000000000000000000000000000000000000000",
+  const earningsReceiver = getOptValue(process.env.EARNINGS_RECEIVER_ADDRESS, wallet.address);
+  const delegationApprover = getOptValue(process.env.DELEGATION_APPROVER_ADDRESS, "0x0000000000000000000000000000000000000000");
+  const metadataURI = getOptValue(process.env.METADATA_URI, "");
+
+  const registeringOperatorDetails = {
+    earningsReceiver,
+    delegationApprover,
     stakerOptOutWindowBlocks: 0
-  }, "");
-  await tx1.wait();
-  console.log("Operator registered on EigenLayer successfully");
+  };
+  console.log("registeringOperatorDetails", registeringOperatorDetails)
+  console.log("metadataURI", metadataURI)
+
+  try {
+    console.log("registerAsOperator start");
+    const tx = await delegationManager.registerAsOperator(registeringOperatorDetails, metadataURI);
+    // console.log("registerAsOperator tx:\n", tx);
+    const receipt = await tx.wait();
+    // console.log("registerAsOperator receipt:\n", receipt);
+    console.log("registerAsOperator successfully with transactionHash:", receipt.transactionHash);
+  } catch (error) {
+    console.log("registerAsOperator failed:", error);
+  }
 };
 
 
 const _getOperatorSignatureWithSaltAndExpiry = async () => {
+  const signatureExpirySeconds = getOptValue(process.env.OPERATOR_SIGNATURE_EXPIRY_SECONDS, 3600);
+  const expiry = Math.floor(Date.now() / 1000) + signatureExpirySeconds;
   const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32));
-  const expiry = Math.floor(Date.now() / 1000) + 3600; // Example expiry, 1 hour from now
 
   // Define the output structure
   let operatorSignature = {
@@ -59,11 +78,10 @@ const _getOperatorSignatureWithSaltAndExpiry = async () => {
 
   // Sign the digest hash with the operator's private key
   const signingKey = new ethers.utils.SigningKey(process.env.PRIVATE_KEY!);
-  const signature1 = signingKey.signDigest(digestHash);
+  const signature = signingKey.signDigest(digestHash);
 
   // Encode the signature in the required format
-  operatorSignature.signature = ethers.utils.joinSignature(signature1);
-
+  operatorSignature.signature = ethers.utils.joinSignature(signature);
 
   return operatorSignature;
 }
@@ -93,55 +111,39 @@ const _getPubkeyRegistrationParams = async () => {
   // console.log("s:", s);
 
   const pubkeyRegParams = {
-    pubkeyRegistrationSignature: {
-      X: s[0],
-      Y: s[1]
-    },
-    pubkeyG1: {
-      X: g1[0],
-      Y: g1[1]
-    },
-    pubkeyG2: {
-      X: [g2[1], g2[0],
-      ],
-      Y: [g2[3], g2[2],
-      ]
-    }
+    pubkeyRegistrationSignature: { X: s[0], Y: s[1] },
+    pubkeyG1: { X: g1[0], Y: g1[1] },
+    pubkeyG2: { X: [g2[1], g2[0]], Y: [g2[3], g2[2]] }
   };
   // console.log("pubkeyRegParams:", pubkeyRegParams);
 
   return pubkeyRegParams;
 }
 
-
 /**
- * @TODO params
+ * 
+ * @param quorumNumbers 
  */
-export const registerOperatorInQuorumWithAVSRegistryCoordinator = async () => {
-  // @TODO
-
-  console.log('registerOperatorInQuorumWithAVSRegistryCoordinator 1');
+export const registerOperatorInQuorumWithAVSRegistryCoordinator = async (
+  quorumNumbers: Uint8Array
+) => {
+  console.log('call _getOperatorSignatureWithSaltAndExpiry');
   const operatorSignature = await _getOperatorSignatureWithSaltAndExpiry();
   // console.log("operatorSignature:", operatorSignature);
 
-  console.log('registerOperatorInQuorumWithAVSRegistryCoordinator 2');
+  console.log('call _getPubkeyRegistrationParams');
   const pubkeyRegParams = await _getPubkeyRegistrationParams();
   // console.log("pubkeyRegParams:", pubkeyRegParams);
 
-  // @TODO
-  const quorumNumbers = [0x00]; // Example quorum number, modify as needed
-  const socket = "127.0.0.1:8000"; // Example socket, modify as needed
-  // console.log("quorumNumbers:", quorumNumbers);
-  // console.log("socket:", socket);
+  const socket = getOptValue(process.env.OPERATOR_SOCKET_IP_PORT, "");
 
-  console.log('registerOperatorInQuorumWithAVSRegistryCoordinator 3');
   try {
     console.log("registerOperator start");
     const tx = await registryContract.registerOperator(quorumNumbers, socket, pubkeyRegParams, operatorSignature);
-    console.log("registerOperator tx:\n", tx);
+    // console.log("registerOperator tx:\n", tx);
     const receipt = await tx.wait();
-    console.log("registerOperator receipt:\n", receipt);
-    console.log("Operator registered on AVS successfully");
+    // console.log("registerOperator receipt:\n", receipt);
+    console.log("registerOperator successfully with transactionHash:", receipt.transactionHash);
   } catch (error) {
     console.log("registerOperator error:\n", error);
     try {
@@ -151,34 +153,20 @@ export const registerOperatorInQuorumWithAVSRegistryCoordinator = async () => {
       console.log("registerOperator.callStatic error:\n", error);
     }
   }
+
 };
 
-const test = async () => {
-  console.log("test registerOperator");
-
-  if (false) {
-    try {
-      await registerAsOperator();
-    } catch (error) {
-      console.log('registerAsOperator error:', error);
-    }
-  }
-
+/**
+ * 
+ * @param operator 
+ */
+export const getOperatorId = async (operator: string | undefined) => {
+  operator = getOptValue(operator, wallet.address);
   try {
-    await registerOperatorInQuorumWithAVSRegistryCoordinator();
-  } catch (error) {
-    console.log('registerOperatorInQuorumWithAVSRegistryCoordinator error:', error);
-  }
-
-
-  try {
-    const id = await registryContract.getOperatorId(wallet.address);
+    const id = await registryContract.getOperatorId(operator);
     console.log('getOperatorId:', id);
   } catch (error) {
-    console.log('getOperatorId error:', error);
+    console.log("getOperatorId error:\n", error);
   }
-};
+}
 
-test().catch((error) => {
-  console.error("Error in test function:", error);
-});

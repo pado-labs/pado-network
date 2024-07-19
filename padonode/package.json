@@ -5,12 +5,16 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -rf dist && tsc --build tsconfig.json",
+    "register:as-operator": "node dist/v2/main.js register-as-operator",
+    "register:avs": "node dist/v2/main.js register --quorum-id-list",
+    "get-operator-id": "node dist/v2/main.js get-operator-id",
     "test": "node --test ./src"
   },
   "author": "PADO Labs",
   "dependencies": {
     "@padolabs/pado-ao-sdk": "^0.1.1",
     "@permaweb/aoconnect": "^0.0.52",
+    "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "ethers": "^5.7.2",
     "express": "^4.19.2",

@@ -166,9 +166,9 @@ export class BlsBn254 {
         return M
     }
 
-    public createKeyPair(_secretKey?: `0x${string}`) {
-        if (!_secretKey) {
-            _secretKey = hexlify(randomBytes(31)) as `0x${string}`
+    public createKeyPair(_secretKey: string = "") {
+        if (_secretKey == undefined || _secretKey === "") {
+            _secretKey = hexlify(randomBytes(31))
         }
 
         const secretKey: Fr = new mcl.Fr()
