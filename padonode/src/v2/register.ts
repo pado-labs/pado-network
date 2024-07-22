@@ -5,7 +5,6 @@ import { getOptValue, getPrivateKey } from './utils';
 import { avsDirectoryABI } from './abis/avsDirectoryABI'; // Contract: AVSDirectory
 import { delegationABI } from "./abis/delegationABI"; // Contract: DelegationManager
 import { registryABI } from "./abis/registryABI"; // Contract: RegistryCoordinator
-// import { contractABI } from './abis/contractABI'; // Contract: ServiceManagerContract
 dotenv.config();
 
 // Ecdsa wallet
@@ -18,13 +17,12 @@ const wallet = new ethers.Wallet(ecdsaPrivateKey, provider);
 const avsDirectoryAddress = process.env.AVS_DIRECTORY_ADDRESS!;
 const delegationManagerAddress = process.env.DELEGATION_MANAGER_ADDRESS!;
 const registryCoordinatorAddress = process.env.REGISTRY_COORDINATOR_ADDRESS!;
-const contractAddress = process.env.CONTRACT_ADDRESS!;
+const serverManagerAddress = process.env.SERVER_MANAGER_ADDRESS!;
 
 // Contracts
 const avsDirectory = new ethers.Contract(avsDirectoryAddress, avsDirectoryABI, wallet);
 const delegationManager = new ethers.Contract(delegationManagerAddress, delegationABI, wallet);
 const registryContract = new ethers.Contract(registryCoordinatorAddress, registryABI, wallet);
-// const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
 
 /**
@@ -71,7 +69,7 @@ const _getOperatorSignatureWithSaltAndExpiry = async () => {
   // Calculate the digest hash using the avsDirectory's method
   const digestHash = await avsDirectory.calculateOperatorAVSRegistrationDigestHash(
     wallet.address,
-    contractAddress,
+    serverManagerAddress,
     salt,
     expiry
   );
