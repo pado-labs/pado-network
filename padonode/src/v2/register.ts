@@ -1,16 +1,17 @@
 import { ethers } from "ethers";
 import * as dotenv from "dotenv";
 import { BlsBn254 } from './bls_bn254';
-import { getOptValue } from './utils';
+import { getOptValue, getPrivateKey } from './utils';
 import { avsDirectoryABI } from './abis/avsDirectoryABI'; // Contract: AVSDirectory
 import { delegationABI } from "./abis/delegationABI"; // Contract: DelegationManager
 import { registryABI } from "./abis/registryABI"; // Contract: RegistryCoordinator
 // import { contractABI } from './abis/contractABI'; // Contract: ServiceManagerContract
 dotenv.config();
 
+// Ecdsa wallet
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
-const blsSecretKey = process.env.BLS_SECRET_KEY!;
+const ecdsaPrivateKey = getPrivateKey(getOptValue(process.env.ECDSA_KEY_FILE, ""), getOptValue(process.env.ECDSA_KEY_PASSWORD, ""));
+const wallet = new ethers.Wallet(ecdsaPrivateKey, provider);
 
 
 // Contracts Address
@@ -77,8 +78,7 @@ const _getOperatorSignatureWithSaltAndExpiry = async () => {
   // console.log("digestHash:", digestHash);
 
   // Sign the digest hash with the operator's private key
-  const signingKey = new ethers.SigningKey(process.env.PRIVATE_KEY!);
-  const signature = signingKey.sign(digestHash);
+  const signature = wallet.signingKey.sign(digestHash);
 
   // Encode the signature in the required format
   operatorSignature.signature = signature.serialized;
@@ -90,7 +90,9 @@ const _getOperatorSignatureWithSaltAndExpiry = async () => {
 const _getPubkeyRegistrationParams = async () => {
   const bls = await BlsBn254.create();
 
-  const { secretKey, pubKeyG1, pubKeyG2 } = bls.createKeyPair(blsSecretKey);
+  let blsPrivateKey = getPrivateKey(getOptValue(process.env.BLS_KEY_FILE, ""), getOptValue(process.env.BLS_KEY_PASSWORD, ""));
+  const { secretKey, pubKeyG1, pubKeyG2 } = bls.createKeyPair(blsPrivateKey);
+  blsPrivateKey = "";
   // console.log("secretKey:", secretKey);
   // console.log(" pubKeyG1:", pubKeyG1);
   // console.log(" pubKeyG2:", pubKeyG2);
