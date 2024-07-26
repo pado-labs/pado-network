@@ -17,6 +17,11 @@ export class EnvConfig {
   operatorSignatureExpirySeconds: number;
   operatorSocketIpPort: string;
 
+  nodeEnableNodeApi: boolean;
+  nodeNodeApiPort: number;
+  nodeEnableMetrics: boolean;
+  nodeMetricsPort: number;
+
   constructor() {
     this.ethRpcUrl = getOptValue(process.env.ETH_RPC_URL, "");
 
@@ -35,10 +40,17 @@ export class EnvConfig {
     this.operatorSignatureExpirySeconds = getOptValue(process.env.OPERATOR_SIGNATURE_EXPIRY_SECONDS, 3600);
     this.operatorSocketIpPort = getOptValue(process.env.OPERATOR_SOCKET_IP_PORT, "");
 
+    this.nodeEnableNodeApi = getOptValue(process.env.NODE_ENABLE_NODE_API, false);
+    this.nodeNodeApiPort = getOptValue(process.env.NODE_API_PORT, 9093);
+    this.nodeEnableMetrics = getOptValue(process.env.NODE_ENABLE_METRICS, false);
+    this.nodeMetricsPort = getOptValue(process.env.NODE_METRICS_PORT, 9094);
   }
 };
 
 export class WorkerConfig extends EnvConfig {
+  avsName: string = "PADO";
+  nodeName: string = "PADO";
+  nodeVersion: string = "v1.0.0";
   constructor() {
     super();
   }

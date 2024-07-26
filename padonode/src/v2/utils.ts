@@ -1,12 +1,14 @@
 import { readFileSync } from "node:fs";
 import { eth as Web3Eth } from "web3";
 
-export function getOptValue(optValue: string | undefined, defaultValue: string | number): any {
+export function getOptValue(optValue: string | undefined, defaultValue: string | number | boolean): any {
   if (optValue == undefined || optValue === "") {
     return defaultValue;
   }
   if (typeof defaultValue === "number") {
     return Number(optValue);
+  } else if (typeof defaultValue === "boolean") {
+    return optValue === "true";
   }
 
   return optValue;

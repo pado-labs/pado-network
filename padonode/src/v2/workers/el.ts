@@ -3,6 +3,12 @@ import { ethers } from "ethers";
 import { BuildAllConfig, buildAll, Clients } from "../clients/builder";
 import { getPrivateKey } from "../utils";
 import { WorkerConfig } from "../config";
+import { NodeApi } from "../nodeapi";
+import { Registry } from 'prom-client';
+import { EigenMetrics } from "../metrics/eigenmetrics";
+import { Collector as RpcCollector } from "../metrics/collectors/rpc-calls/rps-calls";
+import { Collector as EconomicsCollector } from "../metrics/collectors/economic/economics";
+
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -11,6 +17,8 @@ export class ELWorker {
   logger!: Logger;
   ecdsaWallet!: ethers.Wallet
   clients!: Clients;
+  nodeApi!: NodeApi;
+  metrics!: EigenMetrics;
   constructor() { }
 };
 
@@ -45,13 +53,34 @@ export async function newELWorker(cfg: WorkerConfig): Promise<ELWorker> {
   const clients = await buildAll(config)
   worker.clients = clients;
 
-
   // Node API
+  const nodeApi = new NodeApi(cfg.nodeName, cfg.nodeVersion);
+  worker.nodeApi = nodeApi;
 
   // Metrics
+  const registry = new Registry();
+
+  // @ts-ignore
+  const rpcCollector = new RpcCollector(cfg.avsName, registry);
+
+  const quorumNames = {
+    "0": "quorum0",
+    "1": "quorum1",
+    "2": "quorum2",
+    "3": "quorum3",
+  };
+  // @ts-ignore
+  const economicsCollector = new EconomicsCollector(
+    worker.clients.elClient,
+    worker.clients.avsClient,
+    cfg.avsName, logger, worker.ecdsaWallet.address, quorumNames,
+    registry);
+
+  const metrics = new EigenMetrics(cfg.avsName, logger, registry);
+  worker.metrics = metrics;
+
 
   worker.cfg = cfg;
-
   return worker;
 }
 
@@ -127,6 +156,11 @@ async function test() {
 
     const isRegistered = await worker.clients.avsClient.isOperatorRegistered(worker.ecdsaWallet.address);
     console.log('isRegistered', isRegistered);
+  }
+
+  {
+    worker.nodeApi.start(worker.cfg.nodeNodeApiPort);
+    worker.metrics.start(worker.cfg.nodeMetricsPort);
   }
 
 }
