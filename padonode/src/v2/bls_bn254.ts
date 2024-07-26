@@ -1,4 +1,10 @@
-import { dataSlice, hexlify, getBytes, keccak256, randomBytes, solidityPacked } from 'ethers';
+import { ethers } from 'ethers'
+const getBytes = ethers.utils.arrayify;
+const hexlify = ethers.utils.hexlify;
+const keccak256 = ethers.utils.keccak256;
+const dataSlice = ethers.utils.hexDataSlice;
+const randomBytes = ethers.utils.randomBytes;
+const solidityPacked = ethers.utils.solidityPack;
 const mcl = require('mcl-wasm')
 import { G1, type G2, type Fr, type Fp, type Fp2 } from 'mcl-wasm'
 
