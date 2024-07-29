@@ -1,9 +1,13 @@
+import { writeFileSync } from "node:fs";
 import { ethers } from "ethers";
 import { newEigenLayerWorker } from "./workers/eigenlayer";
 import { initAll } from "./workers/worker";
 import { WorkerConfig } from "./workers/config";
 import { getPrivateKey } from "./utils";
+import { generateKey } from "./crypto/lhe";
+
 import { Command } from "commander";
+import { assert } from "node:console";
 const program = new Command();
 
 async function _getWorker(options: any): Promise<[WorkerConfig, any]> {
@@ -63,6 +67,22 @@ async function _getOperatorId(options: any) {
   }
 }
 
+async function _geneateLHEKey(options: any) {
+  console.log('options', options);
+  const keyPath = options.output;
+  const n = Number(options.n);
+  const t = Number(options.t);
+  assert(n >= 3, "n >= 3");
+  assert(t >= 1, "t >= 1");
+  assert(n >= t, "n >= t");
+
+  {
+    const key = await generateKey({ n: n, t: t });
+    writeFileSync(keyPath, JSON.stringify(key));
+    console.log(`The key has been stored into ${keyPath}.`);
+  }
+}
+
 async function main() {
   program.command('register-as-operator')
     .description('Register as Operator on EigenLayer')
@@ -79,6 +99,13 @@ async function main() {
     .description('Get the Operator Id.')
     .option('--operator <ADDRESS>', 'the operator address')
     .action((options) => { _getOperatorId(options); });
+
+  program.command('generate-lhe-key')
+    .description('Generate LHE Keys.')
+    .option('--output <FILEPATH>', 'JSON file path to store the keys', "lhe.key.json")
+    .option('--n <TOTAL>', 'total number', '3')
+    .option('--t <THRESHOLD>', 'threshold number', '2')
+    .action((options) => { _geneateLHEKey(options); });
 
   await program.parseAsync(process.argv);
 }

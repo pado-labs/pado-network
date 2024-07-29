@@ -78,8 +78,17 @@ export const decrypt = (reenc_sks: string[],
 
     return res;
 }
+/**
+ * The config for LHE Key
+ */
+export interface LHEKeyConfig {
+    /** total number */
+    n: number,
+    /** threshold number */
+    t: number,
+};
 
-export type KeyInfo = {
+export type LHEKey = {
     pk: string;
     sk: string;
 };
@@ -89,7 +98,8 @@ export type KeyInfo = {
  *
  * @returns Return the key pair object which contains pk and sk fields
  */
-export const generateKey = (): Promise<KeyInfo> => {
+export function generateKey(keyConfig: LHEKeyConfig): Promise<LHEKey> {
+    // TODO: keyConfig
     if (lhe && lhe._keygen) {
         return keygen();
     }
@@ -100,6 +110,7 @@ export const generateKey = (): Promise<KeyInfo> => {
         }, 1000);
     });
 };
+
 
 async function test() {
     const r = await generateKey();

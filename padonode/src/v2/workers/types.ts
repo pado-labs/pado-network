@@ -3,53 +3,7 @@ import { WorkerConfig } from "./config";
 import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
 import { Metrics } from "../metrics/metrics";
-
-/**
- * The config for LHE Key
- */
-export interface LHEKeyConfig {
-  /** total number */
-  n: number,
-  /** threshold number */
-  t: number,
-};
-
-/**
- * For LHE encryption and decryption.
- */
-export class LHEKey {
-  pk!: string;
-  sk!: string;
-
-  /**
-   * Generate keys
-   * @param config `LHEKeyConfig`
-   * @returns LHEKey
-   */
-  static generate(config: LHEKeyConfig): LHEKey {
-    console.log(config)
-
-    let key = new LHEKey();
-    key.pk = "test pk";
-    key.sk = "test sk";
-
-    return key;
-  }
-
-  /**
-   * Load keys from a file.
-   * @param path 
-   * @returns LHEKey
-   */
-  static load(path: string): LHEKey {
-    console.log(path)
-    let key = new LHEKey();
-    key.pk = "test pk";
-    key.sk = "test sk";
-
-    return key;
-  }
-};
+import { LHEKey } from "../crypto/lhe";
 
 /**
  * @TODO 
