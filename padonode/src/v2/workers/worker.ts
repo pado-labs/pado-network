@@ -3,7 +3,7 @@ import { WorkerConfig } from "./config";
 import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
 import { Metrics } from "../metrics/metrics";
-import { IWorker } from "./types";
+import { DoTaskParams, IWorker } from "./types";
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -27,6 +27,28 @@ export function initAll(): [WorkerConfig, Logger, NodeApi, Registry, Metrics] {
 };
 
 
+async function _runWorkers(workers: IWorker[]) {
+  setTimeout(async () => {
+    try {
+      // todo, set params if necessary
+      const doTaskParams = {
+        signer: undefined,
+        taskTypeConfig: [],
+      } as DoTaskParams;
+
+      const workerNums = workers.length;
+      for (let i = 0; i < workerNums; i++) {
+        // @ts-ignore
+        const doTaskResult = await workers[i].doTask(doTaskParams);
+      }
+    } catch (e) {
+      console.log("_runWorkers exception:", e);
+    }
+
+    await _runWorkers(workers);
+  }, 1000); // todo, set interval by .env
+}
+
 /**
  * 
  * @param worker 
@@ -44,6 +66,13 @@ export function initAll(): [WorkerConfig, Logger, NodeApi, Registry, Metrics] {
  * ```
  */
 export async function runWorker(worker: IWorker | IWorker[]) {
-  console.log('drunWorker worker', worker);
+  let workers: IWorker[];
+  if (worker instanceof Array) {
+    workers = worker;
+  } else {
+    workers = [worker];
+  }
+
+  await _runWorkers(workers);
 }
 

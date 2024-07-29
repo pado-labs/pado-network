@@ -18,7 +18,7 @@ dotenv.config();
 import { AbstractWorker, ChainType } from "./types";
 import { RegisterParams, RegisterResult, DeregisterParams, DeregisterResult, UpdateParams, UpdateResult } from "./types";
 import { DoTaskParams, DoTaskResult } from "./types";
-import { initAll } from "./worker";
+import { initAll, runWorker } from "./worker";
 
 
 export class EigenLayerWorker extends AbstractWorker {
@@ -170,6 +170,10 @@ async function test() {
   {
     nodeApi.start(cfg.nodeNodeApiPort);
     metrics.start(cfg.nodeMetricsPort);
+  }
+  {
+    runWorker(worker);
+    runWorker([worker, worker]);
   }
 }
 if (require.main === module) {

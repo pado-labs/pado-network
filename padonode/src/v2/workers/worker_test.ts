@@ -1,4 +1,4 @@
-import { initAll } from "./worker";
+import { initAll, runWorker } from "./worker";
 import { newNativeWorker } from "./native";
 import { newEigenLayerWorker } from "./eigenlayer";
 import { newAOWorker } from "./ao";
@@ -21,9 +21,8 @@ async function test() {
 
   nodeApi.start();
   metrics.start();
-  // nativeWorker.doTask();
-  // eigenWorker.doTask();
-  // aoWorker.doTask();
+
+  await runWorker([nativeWorker, eigenWorker, aoWorker]);
 }
 
 if (require.main === module) {
