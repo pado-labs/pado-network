@@ -1,4 +1,4 @@
-import { getOptValue } from './utils';
+import { getOptValue } from '../utils';
 import * as dotenv from "dotenv";
 dotenv.config();
 

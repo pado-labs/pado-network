@@ -1,8 +1,11 @@
-import { pino, Logger } from "pino";
+/**
+ * Worker: EigenLayer
+ */
+import { Logger } from "pino";
 import { ethers } from "ethers";
 import { BuildAllConfig, buildAll, Clients } from "../clients/builder";
 import { getPrivateKey } from "../utils";
-import { WorkerConfig } from "../config";
+import { WorkerConfig } from "./config";
 import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
 import { EigenMetrics } from "../metrics/eigenmetrics";
@@ -12,53 +15,60 @@ import { Collector as EconomicsCollector } from "../metrics/collectors/economic/
 import * as dotenv from "dotenv";
 dotenv.config();
 
-export class ELWorker {
-  cfg!: WorkerConfig;
-  logger!: Logger;
+import { AbstractWorker, ChainType } from "./types";
+import { RegisterParams, RegisterResult, DeregisterParams, DeregisterResult, UpdateParams, UpdateResult } from "./types";
+import { DoTaskParams, DoTaskResult } from "./types";
+import { initAll } from "./worker";
+
+
+export class EigenLayerWorker extends AbstractWorker {
   ecdsaWallet!: ethers.Wallet
   clients!: Clients;
-  nodeApi!: NodeApi;
-  metrics!: EigenMetrics;
-  constructor() { }
+  eigenMetrics!: EigenMetrics;
+
+  constructor(chainType: ChainType = ChainType.Ethereum) {
+    super();
+    this.chainType = chainType;
+  }
+
+  register(params: RegisterParams): Promise<RegisterResult> {
+    console.log('register params', params);
+    return Promise.resolve({});
+  }
+  deregister(params: DeregisterParams): Promise<DeregisterResult> {
+    console.log('deregister params', params);
+    return Promise.resolve({});
+  }
+  update(params: UpdateParams): Promise<UpdateResult> {
+    console.log('update params', params);
+    return Promise.resolve({});
+  }
+  doTask(params: DoTaskParams): Promise<DoTaskResult> {
+    console.log('doTask params', params);
+    return Promise.resolve({});
+  }
 };
 
-export async function newELWorker(cfg: WorkerConfig): Promise<ELWorker> {
-  const worker = new ELWorker();
-
-  // Logger
-  const transport = pino.transport({
-    targets: [{
-      level: "info",
-      target: 'pino/file',
-      options: { destination: './worker.log' }
-    }]
-  })
-  const logger = pino(transport);
+export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nodeApi: NodeApi, registry: Registry): Promise<EigenLayerWorker> {
+  const worker = new EigenLayerWorker(ChainType.Holesky);
   worker.logger = logger;
+  worker.nodeApi = nodeApi;
+  worker.registry = registry;
 
+  // init something special
 
   // Clients
   const ethProvider = new ethers.providers.JsonRpcProvider(cfg.ethRpcUrl);
   const ecdsaPrivateKey = await getPrivateKey(cfg.ecdsaKeyFile, cfg.ecdsaKeyPass);
   const ecdsaWallet = new ethers.Wallet(ecdsaPrivateKey, ethProvider);
   worker.ecdsaWallet = ecdsaWallet;
-  if (cfg.earningsReceiver === "") {
-    cfg.earningsReceiver = ecdsaWallet.address;
-  }
 
   const config = new BuildAllConfig(
     cfg.registryCoordinatorAddress,
     cfg.operatorStateRetrieverAddress,
     ecdsaWallet, logger);
-  const clients = await buildAll(config)
+  const clients = await buildAll(config); // todo, no need build all clients
   worker.clients = clients;
-
-  // Node API
-  const nodeApi = new NodeApi(cfg.nodeName, cfg.nodeVersion);
-  worker.nodeApi = nodeApi;
-
-  // Metrics
-  const registry = new Registry();
 
   // @ts-ignore
   const rpcCollector = new RpcCollector(cfg.avsName, registry);
@@ -76,8 +86,8 @@ export async function newELWorker(cfg: WorkerConfig): Promise<ELWorker> {
     cfg.avsName, logger, worker.ecdsaWallet.address, quorumNames,
     registry);
 
-  const metrics = new EigenMetrics(cfg.avsName, logger, registry);
-  worker.metrics = metrics;
+  const eigenMetrics = new EigenMetrics(cfg.avsName, logger, registry);
+  worker.eigenMetrics = eigenMetrics;
 
 
   worker.cfg = cfg;
@@ -86,18 +96,17 @@ export async function newELWorker(cfg: WorkerConfig): Promise<ELWorker> {
 
 
 async function test() {
-  const cfg = new WorkerConfig();
-  // console.log('cfg', cfg);
-  const worker = await newELWorker(cfg);
-  // console.log('worker', worker);
+  const [cfg, logger, nodeApi, registry, metrics] = initAll();
+  const worker = await newEigenLayerWorker(cfg, logger, nodeApi, registry);
+  console.log('typeof worker', typeof worker);
 
   {
     console.log('---------------------------- registerAsOperator');
     const operatorInfo = {
       address: worker.ecdsaWallet.address, // todo
-      earningsReceiverAddress: cfg.earningsReceiver,
+      earningsReceiverAddress: cfg.earningsReceiver === "" ? worker.ecdsaWallet.address : cfg.earningsReceiver,
       delegationApproverAddress: cfg.delegationApprover,
-      stakerOptOutWindowBlocks: 0,//todo
+      stakerOptOutWindowBlocks: 0,// todo
       metadataUrl: cfg.metadataURI,
     };
     console.log(operatorInfo);
@@ -159,10 +168,9 @@ async function test() {
   }
 
   {
-    worker.nodeApi.start(worker.cfg.nodeNodeApiPort);
-    worker.metrics.start(worker.cfg.nodeMetricsPort);
+    nodeApi.start(cfg.nodeNodeApiPort);
+    metrics.start(cfg.nodeMetricsPort);
   }
-
 }
 if (require.main === module) {
   test();

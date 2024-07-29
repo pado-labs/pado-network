@@ -1,6 +1,10 @@
+
+/**
+ * Interact with PADO AVS Contracts
+ */
 import { Logger } from "pino";
 import { ethers } from "ethers";
-import { ELClient } from "./el";
+import { ELClient } from "./eigenlayer";
 import { BlsBn254 } from '../bls_bn254';
 import { bitmapToQuorumIds } from "../utils";
 

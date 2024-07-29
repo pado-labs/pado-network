@@ -1,3 +1,6 @@
+/**
+ * Interact with EigenLayer Contracts
+ */
 import { Logger } from "pino";
 import { ethers } from "ethers";
 
@@ -8,7 +11,6 @@ export type Operator = {
   stakerOptOutWindowBlocks: number,
   metadataUrl: string, // default: ""
 };
-
 export class ELClient {
   constructor(
     // @ts-ignore

@@ -1,6 +1,6 @@
 import { Logger } from 'pino';
 import { Gauge, Registry } from 'prom-client';
-import { ELClient } from '../../../clients/el';
+import { ELClient } from '../../../clients/eigenlayer';
 import { AvsClient } from '../../../clients/avs';
 
 export class Collector {

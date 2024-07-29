@@ -1,13 +1,7 @@
 import { Counter, Gauge, Registry } from 'prom-client';
 import { pino, Logger } from 'pino';
 import express from 'express';
-// import { randomInt } from 'crypto';
 
-// // for test
-// import { Collector as RpcCollector } from "./collectors/rpc-calls/rps-calls"
-// import { Collector as EconomicsCollector } from "./collectors/economic/economics"
-// import { ELClient } from '../clients/el';
-// import { AvsClient } from '../clients/avs';
 
 // Constants
 const EIGEN_PROM_NAMESPACE = 'eigen';

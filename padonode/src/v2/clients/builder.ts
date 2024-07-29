@@ -1,7 +1,10 @@
+/**
+ * Build all clients.
+ */
 import { Logger } from "pino";
 import { ethers } from "ethers";
 import { AvsClient } from "./avs";
-import { ELClient } from "./el";
+import { ELClient } from "./eigenlayer";
 import { registryCoordinatorABI } from "../abis/registryCoordinatorABI";
 import { stakeRegistryABI } from "../abis/stakeRegistryABI";
 import { delegationManagerABI } from "../abis/delegationManagerABI";
@@ -30,37 +33,37 @@ export class BuildAllConfig {
     }
 
     async buildElClient(): Promise<ELClient> {
-        console.log('registryCoordinatorAddress', this.registryCoordinatorAddress);
+        // console.log('registryCoordinatorAddress', this.registryCoordinatorAddress);
         const registryCoordinator = new ethers.Contract(this.registryCoordinatorAddress, registryCoordinatorABI, this.ecdsaWallet);
         // console.log('registryCoordinator', registryCoordinator);
 
         const stakeRegistryAddress: string = await registryCoordinator.stakeRegistry();
-        console.log('stakeRegistryAddress', stakeRegistryAddress);
+        // console.log('stakeRegistryAddress', stakeRegistryAddress);
         const stakeRegistry = new ethers.Contract(stakeRegistryAddress, stakeRegistryABI, this.ecdsaWallet);
         // console.log('stakeRegistry', stakeRegistry);
 
         const delegationManagerAddress: string = await stakeRegistry.delegation();
-        console.log('delegationManagerAddress', delegationManagerAddress);
+        // console.log('delegationManagerAddress', delegationManagerAddress);
         const delegationManager = new ethers.Contract(delegationManagerAddress, delegationManagerABI, this.ecdsaWallet);
         // console.log('delegationManager', delegationManager);
 
         const slasherAddress: string = await delegationManager.slasher();
-        console.log('slasherAddress', slasherAddress);
+        // console.log('slasherAddress', slasherAddress);
         const slasher = new ethers.Contract(slasherAddress, slasherABI, this.ecdsaWallet);
         // console.log('slasher', slasher);
 
         const strategyManagerAddress: string = await delegationManager.strategyManager();
-        console.log('strategyManagerAddress', strategyManagerAddress);
+        // console.log('strategyManagerAddress', strategyManagerAddress);
         const strategyManager = new ethers.Contract(strategyManagerAddress, strategyManagerABI, this.ecdsaWallet);
         // console.log('strategyManager', strategyManager);
 
         const serviceManagerAddress: string = await registryCoordinator.serviceManager();
-        console.log('serviceManagerAddress', serviceManagerAddress);
+        // console.log('serviceManagerAddress', serviceManagerAddress);
         const serviceManager = new ethers.Contract(serviceManagerAddress, serviceManagerABI, this.ecdsaWallet);
         // console.log('serviceManager', serviceManager);
 
         const avsDirectoryAddress: string = await serviceManager.avsDirectory();
-        console.log('avsDirectoryAddress', avsDirectoryAddress);
+        // console.log('avsDirectoryAddress', avsDirectoryAddress);
         const avsDirectory = new ethers.Contract(avsDirectoryAddress, avsDirectoryABI, this.ecdsaWallet);
         // console.log('avsDirectory', avsDirectory);
 
@@ -78,23 +81,23 @@ export class BuildAllConfig {
     async buildAvsClient(
         elClient: ELClient,
     ): Promise<AvsClient> {
-        console.log('registryCoordinatorAddress', this.registryCoordinatorAddress);
+        // console.log('registryCoordinatorAddress', this.registryCoordinatorAddress);
         const registryCoordinator = new ethers.Contract(this.registryCoordinatorAddress, registryCoordinatorABI, this.ecdsaWallet);
         // console.log('registryCoordinator', registryCoordinator);
 
         const stakeRegistryAddress: string = await registryCoordinator.stakeRegistry();
-        console.log('stakeRegistryAddress', stakeRegistryAddress);
+        // console.log('stakeRegistryAddress', stakeRegistryAddress);
         const stakeRegistry = new ethers.Contract(stakeRegistryAddress, stakeRegistryABI, this.ecdsaWallet);
         // console.log('stakeRegistry', stakeRegistry);
 
 
         const serviceManagerAddress: string = await registryCoordinator.serviceManager();
-        console.log('serviceManagerAddress', serviceManagerAddress);
+        // console.log('serviceManagerAddress', serviceManagerAddress);
         const serviceManager = new ethers.Contract(serviceManagerAddress, serviceManagerABI, this.ecdsaWallet);
         // console.log('serviceManager', serviceManager);
 
         const blsApkRegistryAddress: string = await registryCoordinator.blsApkRegistry();
-        console.log('blsApkRegistryAddress', blsApkRegistryAddress);
+        // console.log('blsApkRegistryAddress', blsApkRegistryAddress);
         const blsApkRegistry = new ethers.Contract(blsApkRegistryAddress, blsApkRegistryABI, this.ecdsaWallet);
         // console.log('blsApkRegistry', blsApkRegistry);
 

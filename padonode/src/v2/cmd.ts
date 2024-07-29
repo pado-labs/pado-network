@@ -1,17 +1,16 @@
 import { ethers } from "ethers";
-import { newELWorker } from "./workers/el";
-import { WorkerConfig } from "./config";
-import { getPrivateKey } from './utils';
+import { newEigenLayerWorker } from "./workers/eigenlayer";
+import { initAll } from "./workers/worker";
+import { WorkerConfig } from "./workers/config";
+import { getPrivateKey } from "./utils";
 import { Command } from "commander";
 const program = new Command();
 
 async function _getWorker(options: any): Promise<[WorkerConfig, any]> {
   console.log('options', options);
 
-  const cfg = new WorkerConfig();
-  // console.log('cfg', cfg);
-  const worker = await newELWorker(cfg);
-  // console.log('worker', worker);
+  const [cfg, logger, nodeApi, registry, _] = initAll();
+  const worker = await newEigenLayerWorker(cfg, logger, nodeApi, registry);
 
   return [worker.cfg, worker];
 }
@@ -23,7 +22,7 @@ async function _registerAsOperator(options: any) {
   {
     const operatorInfo = {
       address: worker.ecdsaWallet.address, // todo
-      earningsReceiverAddress: cfg.earningsReceiver,
+      earningsReceiverAddress: cfg.earningsReceiver === "" ? worker.ecdsaWallet.address : cfg.earningsReceiver,
       delegationApproverAddress: cfg.delegationApprover,
       stakerOptOutWindowBlocks: 0,//todo
       metadataUrl: cfg.metadataURI,
