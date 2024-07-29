@@ -172,7 +172,7 @@ export class NodeApi {
     res.status(404).end();
   }
 
-  start(port: number = 8000) {
+  start(port: number = 9093) {
     const app = express();
 
     app.get(baseUrl + "/node", (req, res) => { this._nodeHandler(req, res); });
@@ -181,13 +181,13 @@ export class NodeApi {
     app.get(baseUrl + "/node/services/:id([a-zA-Z0-9-_]+)/health", (req, res) => { this._serviceHealthHandler(req, res); });
 
     app.listen(port, () => {
-      console.log(`Server is running on port ${port}.`);
+      console.log(`NodeAPI server is running on port ${port}.`);
     });
   }
 
 };
 
-async function main() {
+async function test() {
   const api = new NodeApi();
   api.registerNewService("service-1", "service-1-name", "service-1-desc", ServiceStatus.Initializing)
   api.registerNewService("service-2", "service-2-name", "service-2-desc", ServiceStatus.Up)
@@ -200,4 +200,6 @@ async function main() {
 
   // update status
 }
-main();
+if (require.main === module) {
+  test();
+}
