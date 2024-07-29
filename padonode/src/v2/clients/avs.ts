@@ -5,7 +5,7 @@
 import { Logger } from "pino";
 import { ethers } from "ethers";
 import { ELClient } from "./eigenlayer";
-import { BlsBn254 } from '../bls_bn254';
+import { BlsBn254 } from '../crypto/bls_bn254';
 import { bitmapToQuorumIds } from "../utils";
 
 export class AvsClient {
