@@ -32,7 +32,6 @@ async function _runWorkers(workers: IWorker[]) {
     try {
       // todo, set params if necessary
       const doTaskParams = {
-        signer: undefined,
         taskTypeConfig: [],
       } as DoTaskParams;
 

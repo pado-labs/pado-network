@@ -44,11 +44,10 @@ export type TaskTypeConfig = {
  * Register the worker info to WorkerContract
  */
 export interface RegisterParams {
-  signer: any,
   /** The name of the worker */
   name: string,
   /** The description of the worker, default is `name` */
-  description?: string,
+  description: string,
   /** Register one or more task types. See `TaskTypeConfig` */
   taskTypeConfig: TaskTypeConfig[],
 };
@@ -60,7 +59,6 @@ export interface RegisterResult {
  * Deregister by name
  */
 export interface DeregisterParams {
-  signer: any,
   /** The name of the worker */
   name: string,
 };
@@ -71,20 +69,18 @@ export interface DeregisterResult {
  * Update Worker description and task types by name
  */
 export interface UpdateParams {
-  signer: any,
   /** The name of the worker. The name can't be updated */
   name: string,
   /** The new value of the worker description */
-  description?: string,
+  description: string,
   /** The new value of taskTypes, will overwrite the original value. See `TaskTypeConfig` */
-  taskTypeConfig?: TaskTypeConfig[],
+  taskTypeConfig: TaskTypeConfig[],
 };
 export interface UpdateResult {
 };
 
 
 export interface DoTaskParams {
-  signer: any,
   taskTypeConfig: TaskTypeConfig[],
 };
 export interface DoTaskResult {
