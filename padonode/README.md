@@ -107,9 +107,9 @@ OPERATOR_SOCKET_IP_PORT=
 
 ```sh
 # special a quorum id or quorum id list split by comma. e.g.:
-# npm run register:avs 0
-# npm run register:avs 0,1
-npm run register:avs <quorum-id-List>
+# npm run register:pado-avs 0
+# npm run register:pado-avs 0,1
+npm run register:pado-avs <quorum-id-List>
 ```
 
 

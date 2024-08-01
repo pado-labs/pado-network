@@ -23,6 +23,8 @@ export class AvsClient {
     // @ts-ignore
     private readonly blsApkRegistry: ethers.Contract,
     // @ts-ignore
+    private readonly wokerMgt: ethers.Contract,
+    // @ts-ignore
     private readonly logger: Logger,
   ) {
   }
@@ -118,8 +120,9 @@ export class AvsClient {
     return pubkeyRegParams;
   }
 
+
   /**
-   * 
+   * Directly register to avs by registryCoordinator
    * @param quorumNumbers 
    */
   async registerOperatorInQuorumWithAVSRegistryCoordinator(
@@ -149,6 +152,49 @@ export class AvsClient {
       console.log("registerOperator error:\n", error);
       try {
         const tx = await this.registryCoordinator.callStatic.registerOperator(quorumNumbers, socket, pubkeyRegParams, operatorSignature);
+        console.log("registerOperator.callStatic tx:\n", tx);
+      } catch (error) {
+        console.log("registerOperator.callStatic error:\n", error);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * 
+   * @param quorumNumbers 
+   */
+  async registerOperatorInQuorumWithAVSWorkerManager(
+    taskTypes: number[],
+    publicKeys: string[],
+    salt: string,
+    expiry: number,
+    blsPrivateKey: string,
+    quorumNumbers: number[],
+    socket: string,
+  ): Promise<ethers.ContractReceipt | null> {
+    console.log('call _getOperatorSignatureWithSaltAndExpiry');
+    const operatorSignature = await this._getOperatorSignatureWithSaltAndExpiry(salt, expiry);
+    // console.log("operatorSignature:", operatorSignature);
+
+    console.log('call _getPubkeyRegistrationParams');
+    const pubkeyRegParams = await this._getPubkeyRegistrationParams(blsPrivateKey);
+    // console.log("pubkeyRegParams:", pubkeyRegParams);
+
+    try {
+      console.log("registerOperator start");
+      const tx = await this.wokerMgt.registerEigenOperator(taskTypes, publicKeys,
+        quorumNumbers, socket, pubkeyRegParams, operatorSignature);
+      // console.log("registerOperator tx:\n", tx);
+      const receipt = await tx.wait();
+      // console.log("registerOperator receipt:\n", receipt);
+      console.log("registerOperator successfully with transaction hash:", receipt.transactionHash);
+      return receipt;
+    } catch (error) {
+      console.log("registerOperator error:\n", error);
+      try {
+        const tx = await this.wokerMgt.callStatic.registerEigenOperator(taskTypes, publicKeys,
+          quorumNumbers, socket, pubkeyRegParams, operatorSignature);
         console.log("registerOperator.callStatic tx:\n", tx);
       } catch (error) {
         console.log("registerOperator.callStatic error:\n", error);

@@ -13,21 +13,25 @@ import { strategyManagerABI } from "../abis/strategyManagerABI";
 import { serviceManagerABI } from "../abis/serviceManagerABI";
 import { avsDirectoryABI } from "../abis/avsDirectoryABI";
 import { blsApkRegistryABI } from "../abis/blsApkRegistryABI";
+import { workerMgtABI } from "../abis/workerMgtABI";
 
 export class BuildAllConfig {
     registryCoordinatorAddress: string;
     operatorStateRetrieverAddress: string;
+    workerMgtAddress: string;
     ecdsaWallet: ethers.Wallet;
     logger: Logger;
 
     constructor(
         registryCoordinatorAddress: string,
         operatorStateRetrieverAddress: string,
+        workerMgtAddress: string,
         ecdsaWallet: ethers.Wallet,
         logger: Logger,
     ) {
         this.registryCoordinatorAddress = registryCoordinatorAddress;
         this.operatorStateRetrieverAddress = operatorStateRetrieverAddress;
+        this.workerMgtAddress = workerMgtAddress;
         this.ecdsaWallet = ecdsaWallet;
         this.logger = logger;
     }
@@ -101,6 +105,8 @@ export class BuildAllConfig {
         const blsApkRegistry = new ethers.Contract(blsApkRegistryAddress, blsApkRegistryABI, this.ecdsaWallet);
         // console.log('blsApkRegistry', blsApkRegistry);
 
+        // console.log('workerMgtAddress', this.workerMgtAddress);
+        const workerMgt = new ethers.Contract(this.workerMgtAddress, workerMgtABI, this.ecdsaWallet);
 
         const avsClient = new AvsClient(
             this.ecdsaWallet,
@@ -109,6 +115,7 @@ export class BuildAllConfig {
             registryCoordinator,
             stakeRegistry,
             blsApkRegistry,
+            workerMgt,
             this.logger,
         );
 

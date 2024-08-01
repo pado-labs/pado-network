@@ -27,6 +27,9 @@ export class EnvConfig {
   nodeEnableMetrics: boolean;
   nodeMetricsPort: number;
 
+  // PADO
+  workerMgtAddress: string;
+
   // AO
   lheKeyPath: string;
   arWalletPath: string;
@@ -67,6 +70,9 @@ export class EnvConfig {
     this.nodeNodeApiPort = getOptValue(process.env.NODE_API_PORT, 9093);
     this.nodeEnableMetrics = getOptValue(process.env.NODE_ENABLE_METRICS, false);
     this.nodeMetricsPort = getOptValue(process.env.NODE_METRICS_PORT, 9094);
+
+    // PADO
+    this.workerMgtAddress = getOptValue(process.env.PADO_WORKER_MANAGEMENT_ADDRESS, "");
 
     // AO
     this.lheKeyPath = getOptValue(process.env.LHE_KEY_PATH, "");
