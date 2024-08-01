@@ -3,53 +3,7 @@ import { WorkerConfig } from "./config";
 import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
 import { Metrics } from "../metrics/metrics";
-
-/**
- * The config for LHE Key
- */
-export interface LHEKeyConfig {
-  /** total number */
-  n: number,
-  /** threshold number */
-  t: number,
-};
-
-/**
- * For LHE encryption and decryption.
- */
-export class LHEKey {
-  pk!: string;
-  sk!: string;
-
-  /**
-   * Generate keys
-   * @param config `LHEKeyConfig`
-   * @returns LHEKey
-   */
-  static generate(config: LHEKeyConfig): LHEKey {
-    console.log(config)
-
-    let key = new LHEKey();
-    key.pk = "test pk";
-    key.sk = "test sk";
-
-    return key;
-  }
-
-  /**
-   * Load keys from a file.
-   * @param path 
-   * @returns LHEKey
-   */
-  static load(path: string): LHEKey {
-    console.log(path)
-    let key = new LHEKey();
-    key.pk = "test pk";
-    key.sk = "test sk";
-
-    return key;
-  }
-};
+import { LHEKey } from "../crypto/lhe";
 
 /**
  * @TODO 
@@ -90,11 +44,10 @@ export type TaskTypeConfig = {
  * Register the worker info to WorkerContract
  */
 export interface RegisterParams {
-  signer: any,
   /** The name of the worker */
   name: string,
   /** The description of the worker, default is `name` */
-  description?: string,
+  description: string,
   /** Register one or more task types. See `TaskTypeConfig` */
   taskTypeConfig: TaskTypeConfig[],
 };
@@ -106,7 +59,6 @@ export interface RegisterResult {
  * Deregister by name
  */
 export interface DeregisterParams {
-  signer: any,
   /** The name of the worker */
   name: string,
 };
@@ -117,20 +69,18 @@ export interface DeregisterResult {
  * Update Worker description and task types by name
  */
 export interface UpdateParams {
-  signer: any,
   /** The name of the worker. The name can't be updated */
   name: string,
   /** The new value of the worker description */
-  description?: string,
+  description: string,
   /** The new value of taskTypes, will overwrite the original value. See `TaskTypeConfig` */
-  taskTypeConfig?: TaskTypeConfig[],
+  taskTypeConfig: TaskTypeConfig[],
 };
 export interface UpdateResult {
 };
 
 
 export interface DoTaskParams {
-  signer: any,
   taskTypeConfig: TaskTypeConfig[],
 };
 export interface DoTaskResult {

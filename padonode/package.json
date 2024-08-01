@@ -4,15 +4,15 @@
   "description": "PADO Node",
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist && tsc --build tsconfig.json",
+    "build": "rm -rf dist && tsc --build tsconfig.json && cp src/v2/crypto/lib/lhe.wasm dist/v2/crypto/lib/lhe.wasm",
     "register:as-operator": "node dist/v2/cmd.js register-as-operator",
     "register:avs": "node dist/v2/cmd.js register --quorum-id-list",
     "get-operator-id": "node dist/v2/cmd.js get-operator-id",
+    "generate-lhe-key": "node dist/v2/cmd.js generate-lhe-key",
     "test": "node --test ./src"
   },
   "author": "PADO Labs",
   "dependencies": {
-    "@padolabs/pado-ao-sdk": "^0.1.1",
     "@permaweb/aoconnect": "^0.0.52",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
