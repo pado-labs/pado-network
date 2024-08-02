@@ -38,6 +38,7 @@ async function _registerAsOperator(options: any) {
   }
 }
 
+
 async function _registerOperatorInQuorumWithAVSRegistryCoordinator(options: any) {
   const [cfg, worker] = await _getWorker(options);
 
@@ -50,6 +51,33 @@ async function _registerOperatorInQuorumWithAVSRegistryCoordinator(options: any)
     const socket = cfg.operatorSocketIpPort;
 
     await worker.clients.avsClient.registerOperatorInQuorumWithAVSRegistryCoordinator(
+      salt,
+      expiry,
+      blsPrivateKey,
+      quorumNumbers,
+      socket,
+    );
+  }
+}
+
+async function _registerOperatorInQuorumWithAVSWorkerManager(options: any) {
+  const [cfg, worker] = await _getWorker(options);
+  // console.log(cfg, worker)
+
+  {
+    const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32));
+    const expiry = Math.floor(Date.now() / 1000) + cfg.operatorSignatureExpirySeconds;
+    const blsPrivateKey = await getPrivateKey(cfg.blsKeyFile, cfg.blsKeyPass);
+    const quorums: Uint8Array = options.quorumIdList.split(',').map((i: number) => { return Number(i) });
+    const quorumNumbers = Array.from(quorums);
+    const socket = cfg.operatorSocketIpPort;
+
+    const taskTypes = [0];
+    const publicKeys = ['0x1234'];
+
+    await worker.clients.avsClient.registerOperatorInQuorumWithAVSWorkerManager(
+      taskTypes,
+      publicKeys,
       salt,
       expiry,
       blsPrivateKey,
@@ -153,11 +181,17 @@ async function main() {
     .requiredOption('--chain <NAME>', 'blockchain(unsupported now)', 'holesky')
     .action((options) => { _registerAsOperator(options); });
 
-  program.command('register')
+  program.command('register:avs')
     .description('Register to AVS.')
     .requiredOption('--chain <NAME>', 'blockchain(unsupported now)', 'holesky')
     .requiredOption('--quorum-id-list <ID>', 'quorum number, split by comma. e.g.: 0/1/0,1')
     .action((options) => { _registerOperatorInQuorumWithAVSRegistryCoordinator(options); });
+
+  program.command('register:pado-avs')
+    .description('Register to PADO AVS.')
+    .requiredOption('--chain <NAME>', 'blockchain(unsupported now)', 'holesky')
+    .requiredOption('--quorum-id-list <ID>', 'quorum number, split by comma. e.g.: 0/1/0,1')
+    .action((options) => { _registerOperatorInQuorumWithAVSWorkerManager(options); });
 
   program.command('get-operator-id')
     .description('Get the Operator Id.')

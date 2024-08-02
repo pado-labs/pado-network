@@ -66,6 +66,7 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
   const config = new BuildAllConfig(
     cfg.registryCoordinatorAddress,
     cfg.operatorStateRetrieverAddress,
+    cfg.workerMgtAddress,
     ecdsaWallet, logger);
   const clients = await buildAll(config); // todo, no need build all clients
   worker.clients = clients;

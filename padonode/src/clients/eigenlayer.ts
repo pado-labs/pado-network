@@ -60,7 +60,7 @@ export class ELClient {
     // this.logger.info(`Registering operator ${operator.address} to EigenLayer`);
 
     const registeringOperatorDetails = {
-      earningsReceiver: operator.earningsReceiverAddress,
+      __deprecated_earningsReceiver: operator.earningsReceiverAddress,
       delegationApprover: operator.delegationApproverAddress,
       stakerOptOutWindowBlocks: operator.stakerOptOutWindowBlocks,
     };
