@@ -23,7 +23,7 @@ export class AvsClient {
     // @ts-ignore
     private readonly blsApkRegistry: ethers.Contract,
     // @ts-ignore
-    private readonly wokerMgt: ethers.Contract,
+    private readonly workerMgt: ethers.Contract,
     // @ts-ignore
     private readonly logger: Logger,
   ) {
@@ -183,7 +183,7 @@ export class AvsClient {
 
     try {
       console.log("registerOperator start");
-      const tx = await this.wokerMgt.registerEigenOperator(taskTypes, publicKeys,
+      const tx = await this.workerMgt.registerEigenOperator(taskTypes, publicKeys,
         quorumNumbers, socket, pubkeyRegParams, operatorSignature);
       // console.log("registerOperator tx:\n", tx);
       const receipt = await tx.wait();
@@ -193,7 +193,7 @@ export class AvsClient {
     } catch (error) {
       console.log("registerOperator error:\n", error);
       try {
-        const tx = await this.wokerMgt.callStatic.registerEigenOperator(taskTypes, publicKeys,
+        const tx = await this.workerMgt.callStatic.registerEigenOperator(taskTypes, publicKeys,
           quorumNumbers, socket, pubkeyRegParams, operatorSignature);
         console.log("registerOperator.callStatic tx:\n", tx);
       } catch (error) {
