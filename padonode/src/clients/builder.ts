@@ -107,6 +107,10 @@ export class BuildAllConfig {
 
         // console.log('workerMgtAddress', this.workerMgtAddress);
         const workerMgt = new ethers.Contract(this.workerMgtAddress, workerMgtABI, this.ecdsaWallet);
+        {
+            // const workerMgtAddress: string = await registryCoordinator.workerMgt();
+            // console.log('workerMgtAddress@', workerMgtAddress);
+        }
 
         const avsClient = new AvsClient(
             this.ecdsaWallet,
