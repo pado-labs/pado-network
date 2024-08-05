@@ -1,3 +1,4 @@
+import { StorageType } from '../clients/ar';
 import { getOptValue } from '../utils';
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -94,6 +95,7 @@ export class EnvConfig {
 export class WorkerConfig extends EnvConfig {
   avsName: string = "PADO";
   nodeVersion: string = "v1.0.0";
+  storageType: StorageType = StorageType.ARWEAVE;
   constructor() {
     super();
   }
