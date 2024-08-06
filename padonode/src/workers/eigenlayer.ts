@@ -23,7 +23,7 @@ import { buildPadoClient, PadoClient } from "../clients/pado";
 import { readFileSync } from "node:fs";
 import { createDataItemSigner } from "@permaweb/aoconnect";
 import Arweave from "arweave";
-import { reencrypt } from "../crypto/lhe";
+import { reencrypt_v2 } from "../crypto/lhe";
 import { fetchData, submitData } from "../clients/ar";
 
 
@@ -134,36 +134,23 @@ export class EigenLayerWorker extends AbstractWorker {
       const dataIdArr = ethers.utils.arrayify(dataInfo.dataContent);
       const transactionId = Uint8ArrayToString(dataIdArr);
       console.log('data transactionId ', transactionId);
-      const encData = await fetchData(this.cfg.storageType, this.arweave, transactionId);
-      const enc_str = Uint8ArrayToString(encData);
-      const enc_data = JSON.parse(enc_str);
+      const enc_data = await fetchData(this.cfg.storageType, this.arweave, transactionId);
       // console.log('enc_data ', enc_data);
 
       // re-encrypt if task.taskType is DataSharing
-      const index = dataInfo.workerIds.indexOf(workerId); // assuming the order of workerIds
-      if (index == -1) {
+      const enc_sk_index = dataInfo.workerIds.indexOf(workerId); // assuming the order of workerIds
+      if (enc_sk_index == -1) {
         console.log('error, cannot fand worker id');
       }
-      const threshold = {
-        t: task.computingInfo.t,
-        n: task.computingInfo.n,
-        indices: [...Array(task.computingInfo.n).keys()].map(i => i + 1), // 1...n
-      };
-      console.log('index:', index, ', threshold', threshold);
-      const enc_sk = enc_data.enc_sks[index];
       const node_sk = this.key.sk;
       const consumer_pk = task.consumerPk.slice(2); // todo, also from ar?
-      // console.log('enc_sk:', enc_sk)
       // console.log('node_sk:', node_sk)
       // console.log('consumer_pk:', consumer_pk)
-      const reencsksObj = reencrypt(enc_sk, node_sk, consumer_pk, threshold);
-      // console.log("reencrypt res=", reencsksObj);
-      var reencsks = JSON.stringify(reencsksObj);
-
+      const reenc_sk = reencrypt_v2(enc_sk_index + 1, node_sk, consumer_pk, enc_data);
+      console.log("reencrypt reenc_sk=", reenc_sk);
 
       // update result to arweave
-      const reEncData = stringToUint8Array(reencsks);
-      const reEncTransactionId = await submitData(this.cfg.storageType, this.arweave, reEncData, this.arWallet);
+      const reEncTransactionId = await submitData(this.cfg.storageType, this.arweave, reenc_sk, this.arWallet);
       console.log('reEncTransactionId ', reEncTransactionId);
       const reEncryptTransactionId = ethers.utils.hexlify(stringToUint8Array(reEncTransactionId));
       console.log('reEncryptTransactionId', reEncryptTransactionId);
