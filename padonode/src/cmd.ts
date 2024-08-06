@@ -62,29 +62,24 @@ async function _registerOperatorInQuorumWithAVSRegistryCoordinator(options: any)
 
 async function _registerOperatorInQuorumWithAVSWorkerManager(options: any) {
   const [cfg, worker] = await _getWorker(options);
-  // console.log(cfg, worker)
+  const quorums: Uint8Array = options.quorumIdList.split(',').map((i: number) => { return Number(i) });
 
-  {
-    const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32));
-    const expiry = Math.floor(Date.now() / 1000) + cfg.operatorSignatureExpirySeconds;
-    const blsPrivateKey = await getPrivateKey(cfg.blsKeyFile, cfg.blsKeyPass);
-    const quorums: Uint8Array = options.quorumIdList.split(',').map((i: number) => { return Number(i) });
-    const quorumNumbers = Array.from(quorums);
-    const socket = cfg.operatorSocketIpPort;
+  let name = cfg.nodeName;
+  let desc = cfg.nodeDescription;
+  if (options.name && options.name !== "") { name = options.name; }
+  if (options.desc && options.desc !== "") { desc = options.desc; }
+  let extraData = {
+    "quorums": quorums
+  };
+  let params = {
+    name: name,
+    description: desc,
+    taskTypeConfig: [],
+    extraData: extraData,
+  } as RegisterParams;
+  console.log('params', params);
 
-    const taskTypes = [0];
-    const publicKeys = ['0x1234'];
-
-    await worker.clients.avsClient.registerOperatorInQuorumWithAVSWorkerManager(
-      taskTypes,
-      publicKeys,
-      salt,
-      expiry,
-      blsPrivateKey,
-      quorumNumbers,
-      socket,
-    );
-  }
+  await worker.register(params);
 }
 
 async function _getOperatorId(options: any) {
