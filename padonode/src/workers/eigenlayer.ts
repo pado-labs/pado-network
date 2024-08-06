@@ -129,7 +129,7 @@ export class EigenLayerWorker extends AbstractWorker {
 
       // get data from arweave
       const dataInfo = await this.padoClient.getDataById(task.dataId);
-      // console.log('dataInfo.dataContent ', dataInfo.dataContent); // TODO
+      console.log('dataInfo.dataContent ', dataInfo.dataContent);
       console.log('dataInfo.workerIds ', dataInfo.workerIds);
       const dataIdArr = ethers.utils.arrayify(dataInfo.dataContent);
       const transactionId = Uint8ArrayToString(dataIdArr);
@@ -143,11 +143,22 @@ export class EigenLayerWorker extends AbstractWorker {
         console.log('error, cannot fand worker id');
       }
       const node_sk = this.key.sk;
-      const consumer_pk = task.consumerPk.slice(2); // todo, also from ar?
+      let consumer_pk;
+      {
+        // get consumer pk from ar
+        console.log('task.consumerPk ', task.consumerPk);
+        const dataIdArr = ethers.utils.arrayify(task.consumerPk);
+        const transactionId = Uint8ArrayToString(dataIdArr);
+        console.log('consumerPk transactionId ', transactionId);
+        const pkData = await fetchData(this.cfg.storageType, this.arweave, transactionId);
+        consumer_pk = Buffer.from(pkData).toString('hex');
+      }
+
+      // const consumer_pk = task.consumerPk.slice(2); // todo, also from ar?
       // console.log('node_sk:', node_sk)
       // console.log('consumer_pk:', consumer_pk)
       const reenc_sk = reencrypt_v2(enc_sk_index + 1, node_sk, consumer_pk, enc_data);
-      console.log("reencrypt reenc_sk=", reenc_sk);
+      // console.log("reencrypt reenc_sk=", reenc_sk);
 
       // update result to arweave
       const reEncTransactionId = await submitData(this.cfg.storageType, this.arweave, reenc_sk, this.arWallet);
