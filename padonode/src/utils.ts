@@ -38,3 +38,24 @@ export function bitmapToQuorumIds(bitmap: bigint): number[] {
   }
   return quorumIds;
 }
+
+
+export function Uint8ArrayToString(data: Uint8Array) {
+  var dataString = "";
+  for (var i = 0; i < data.length; i++) {
+    dataString += String.fromCharCode(data[i]);
+  }
+
+  return dataString
+}
+
+
+export function stringToUint8Array(str: string) {
+  var arr = [];
+  for (var i = 0, j = str.length; i < j; ++i) {
+    arr.push(str.charCodeAt(i));
+  }
+
+  var data = new Uint8Array(arr);
+  return data
+}

@@ -4,7 +4,7 @@
 import { Logger } from "pino";
 import { ethers } from "ethers";
 import { BuildAllConfig, buildAll, Clients } from "../clients/builder";
-import { getPrivateKey } from "../utils";
+import { getPrivateKey, stringToUint8Array, Uint8ArrayToString } from "../utils";
 import { WorkerConfig } from "./config";
 import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
@@ -19,22 +19,67 @@ import { AbstractWorker, ChainType } from "./types";
 import { RegisterParams, RegisterResult, DeregisterParams, DeregisterResult, UpdateParams, UpdateResult } from "./types";
 import { DoTaskParams, DoTaskResult } from "./types";
 import { initAll, runWorker } from "./worker";
+import { buildPadoClient, PadoClient } from "../clients/pado";
+import { readFileSync } from "node:fs";
+import { createDataItemSigner } from "@permaweb/aoconnect";
+import Arweave from "arweave";
+import { reencrypt } from "../crypto/lhe";
+import { fetchData, submitData } from "../clients/ar";
 
 
 export class EigenLayerWorker extends AbstractWorker {
   ecdsaWallet!: ethers.Wallet
   clients!: Clients;
+  padoClient!: PadoClient;
   eigenMetrics!: EigenMetrics;
+  key!: any;
+  arWallet!: any;
+  arSigner!: any;
+  arweave!: any;
 
   constructor(chainType: ChainType = ChainType.Ethereum) {
     super();
     this.chainType = chainType;
   }
 
-  register(params: RegisterParams): Promise<RegisterResult> {
+  async register(params: RegisterParams): Promise<RegisterResult> {
     console.log('register params', params);
+    const cfg = this.cfg;
+
+    try {
+      // @ts-ignore
+      const name = params.name;
+      // @ts-ignore
+      const desc = params.description;
+      // @todo: params.taskTypeConfig??
+      const quorums = params.extraData ? params.extraData["quorums"] : [0]; // todo: failed if not set
+
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32));
+      const expiry = Math.floor(Date.now() / 1000) + cfg.operatorSignatureExpirySeconds;
+      const blsPrivateKey = await getPrivateKey(cfg.blsKeyFile, cfg.blsKeyPass);
+      const quorumNumbers = quorums;
+      const socket = cfg.operatorSocketIpPort;
+
+      const taskTypes = [0]; // todo
+      const publicKeys = ["0x" + this.key.pk];
+
+      const res = await this.clients.avsClient.registerOperatorInQuorumWithAVSWorkerManager(
+        taskTypes,
+        publicKeys,
+        salt,
+        expiry,
+        blsPrivateKey,
+        quorumNumbers,
+        socket,
+      );
+      console.log(`registerNode res=${res}`);
+    } catch (e) {
+      console.log("registerNode exception:", e);
+    }
+
     return Promise.resolve({});
   }
+
   deregister(params: DeregisterParams): Promise<DeregisterResult> {
     console.log('deregister params', params);
     return Promise.resolve({});
@@ -43,9 +88,93 @@ export class EigenLayerWorker extends AbstractWorker {
     console.log('update params', params);
     return Promise.resolve({});
   }
-  doTask(params: DoTaskParams): Promise<DoTaskResult> {
+
+  async doTask(params: DoTaskParams): Promise<DoTaskResult> {
     console.log('doTask params', params);
+    try {
+      await this._doTask();
+    } catch (e) {
+      console.log("doTaskLoop exception:", e);
+    }
+
     return Promise.resolve({});
+  }
+
+  private async _getWorkId(): Promise<string> {
+    return await this.clients.avsClient.getOperatorId(this.ecdsaWallet.address);
+  }
+
+
+  private async _doTask() {
+    // @todo split this function
+
+    // const tasks = await this.padoClient.getPendingTasks();
+    // console.log('getPendingTasks', tasks.length);
+
+    const workerId = await this._getWorkId(); // todo: to outside
+    console.log('workerId', workerId);
+
+    const tasks = await this.padoClient.getPendingTasksByWorkerId(workerId);
+    console.log('tasks.length', tasks.length);
+    // console.log('getPendingTasksByWorkerId', tasks);
+
+    for (const task of tasks) {
+      console.log('-------------------------------------------');
+      console.log('task.task', task.taskId);
+      console.log('task.taskType', task.taskType);
+      // console.log('task.consumerPk', task.consumerPk); // todo, also update to ar?
+      console.log('task.dataId', task.dataId);
+      // console.log('task.computingInfo', task.computingInfo);
+
+
+      // get data from arweave
+      const dataInfo = await this.padoClient.getDataById(task.dataId);
+      // console.log('dataInfo.dataContent ', dataInfo.dataContent); // TODO
+      console.log('dataInfo.workerIds ', dataInfo.workerIds);
+      const dataIdArr = ethers.utils.arrayify(dataInfo.dataContent);
+      const transactionId = Uint8ArrayToString(dataIdArr);
+      console.log('data transactionId ', transactionId);
+      const encData = await fetchData(this.cfg.storageType, this.arweave, transactionId);
+      const enc_str = Uint8ArrayToString(encData);
+      const enc_data = JSON.parse(enc_str);
+      // console.log('enc_data ', enc_data);
+
+      // re-encrypt if task.taskType is DataSharing
+      const index = dataInfo.workerIds.indexOf(workerId); // assuming the order of workerIds
+      if (index == -1) {
+        console.log('error, cannot fand worker id');
+      }
+      const threshold = {
+        t: task.computingInfo.t,
+        n: task.computingInfo.n,
+        indices: [...Array(task.computingInfo.n).keys()].map(i => i + 1), // 1...n
+      };
+      console.log('index:', index, ', threshold', threshold);
+      const enc_sk = enc_data.enc_sks[index];
+      const node_sk = this.key.sk;
+      const consumer_pk = task.consumerPk.slice(2); // todo, also from ar?
+      // console.log('enc_sk:', enc_sk)
+      // console.log('node_sk:', node_sk)
+      // console.log('consumer_pk:', consumer_pk)
+      const reencsksObj = reencrypt(enc_sk, node_sk, consumer_pk, threshold);
+      // console.log("reencrypt res=", reencsksObj);
+      var reencsks = JSON.stringify(reencsksObj);
+
+
+      // update result to arweave
+      const reEncData = stringToUint8Array(reencsks);
+      const reEncTransactionId = await submitData(this.cfg.storageType, this.arweave, reEncData, this.arWallet);
+      console.log('reEncTransactionId ', reEncTransactionId);
+      const reEncryptTransactionId = ethers.utils.hexlify(stringToUint8Array(reEncTransactionId));
+      console.log('reEncryptTransactionId', reEncryptTransactionId);
+
+
+      // report result
+      // todo: how when failed?
+      const res = await this.padoClient.reportResult(task.taskId, workerId, reEncryptTransactionId);
+      console.log('reportResult', res);
+    }
+    // TODO add something to monitor if failed
   }
 };
 
@@ -71,9 +200,28 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
   const clients = await buildAll(config); // todo, no need build all clients
   worker.clients = clients;
 
+  worker.padoClient = await buildPadoClient(ecdsaWallet, cfg.dataMgtAddress, cfg.taskMgtAddress, cfg.workerMgtAddress, logger);
+
+  const wallet = JSON.parse(readFileSync(cfg.arWalletPath).toString());
+  const signer = createDataItemSigner(wallet);
+  worker.arWallet = wallet;
+  worker.arSigner = signer;
+
+  const key = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
+  worker.key = key;
+
+  // todo
+  const arweave = Arweave.init({
+    host: '127.0.0.1',
+    port: 1984,
+    protocol: 'http'
+  });
+  worker.arweave = arweave;
+
   // @ts-ignore
   const rpcCollector = new RpcCollector(cfg.avsName, registry);
 
+  // todo
   const quorumNames = {
     "0": "quorum0",
     "1": "quorum1",

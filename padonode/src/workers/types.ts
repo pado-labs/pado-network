@@ -5,6 +5,10 @@ import { Registry } from 'prom-client';
 import { Metrics } from "../metrics/metrics";
 import { LHEKey } from "../crypto/lhe";
 
+export type CommonObject = {
+  [propName: string]: any;
+};
+
 /**
  * @TODO 
  * Other keys, 
@@ -50,6 +54,8 @@ export interface RegisterParams {
   description: string,
   /** Register one or more task types. See `TaskTypeConfig` */
   taskTypeConfig: TaskTypeConfig[],
+  /** Extra data */
+  extraData?: CommonObject,
 };
 export interface RegisterResult {
 };
@@ -61,6 +67,8 @@ export interface RegisterResult {
 export interface DeregisterParams {
   /** The name of the worker */
   name: string,
+  /** Extra data */
+  extraData?: CommonObject,
 };
 export interface DeregisterResult {
 };
@@ -75,6 +83,8 @@ export interface UpdateParams {
   description: string,
   /** The new value of taskTypes, will overwrite the original value. See `TaskTypeConfig` */
   taskTypeConfig: TaskTypeConfig[],
+  /** Extra data */
+  extraData?: CommonObject,
 };
 export interface UpdateResult {
 };
@@ -82,6 +92,8 @@ export interface UpdateResult {
 
 export interface DoTaskParams {
   taskTypeConfig: TaskTypeConfig[],
+  /** Extra data */
+  extraData?: CommonObject,
 };
 export interface DoTaskResult {
 };
