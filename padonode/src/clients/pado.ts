@@ -133,6 +133,12 @@ export class PadoClient {
     return res;
   }
 
+  async getCompletedTaskById(taskId: string): Promise<any | null> {
+    let res = await this.taskMgt.getCompletedTaskById(taskId);
+    // console.log('getCompletedTaskById res', res);
+    return res;
+  }
+
 
   async reportResult(taskId: string, workerId: string, result: string): Promise<any | null> {
     let tx = await this.taskMgt.reportResult(taskId, workerId, result);
