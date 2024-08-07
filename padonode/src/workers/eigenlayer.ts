@@ -66,7 +66,7 @@ export class EigenLayerWorker extends AbstractWorker {
       {
         // upload pk to arweave
         let pkData = Uint8Array.from(Buffer.from(this.key.pk, 'hex'));
-        const pkTransactionId = await submitData(this.cfg.storageType, this.arweave, pkData, this.arWallet);
+        const pkTransactionId = await submitData(this.cfg.dataStorageType, this.arweave, pkData, this.arWallet);
         console.log('pkTransactionId ', pkTransactionId);
         const pkTransactionIdHex = ethers.utils.hexlify(stringToUint8Array(pkTransactionId));
         console.log('pkTransactionIdHex ', pkTransactionIdHex);
@@ -144,7 +144,7 @@ export class EigenLayerWorker extends AbstractWorker {
       const dataIdArr = ethers.utils.arrayify(dataInfo.dataContent);
       const transactionId = Uint8ArrayToString(dataIdArr);
       console.log('data transactionId ', transactionId);
-      const enc_data = await fetchData(this.cfg.storageType, this.arweave, transactionId);
+      const enc_data = await fetchData(this.cfg.dataStorageType, this.arweave, transactionId);
       // console.log('enc_data ', enc_data);
 
       // re-encrypt if task.taskType is DataSharing
@@ -161,7 +161,7 @@ export class EigenLayerWorker extends AbstractWorker {
         const dataIdArr = ethers.utils.arrayify(task.consumerPk);
         const transactionId = Uint8ArrayToString(dataIdArr);
         console.log('consumerPk transactionId ', transactionId);
-        const pkData = await fetchData(this.cfg.storageType, this.arweave, transactionId);
+        const pkData = await fetchData(this.cfg.dataStorageType, this.arweave, transactionId);
         consumer_pk = Buffer.from(pkData).toString('hex');
       }
 
@@ -171,7 +171,7 @@ export class EigenLayerWorker extends AbstractWorker {
       // console.log("reencrypt reenc_sk=", reenc_sk);
 
       // update result to arweave
-      const reEncTransactionId = await submitData(this.cfg.storageType, this.arweave, reenc_sk, this.arWallet);
+      const reEncTransactionId = await submitData(this.cfg.dataStorageType, this.arweave, reenc_sk, this.arWallet);
       console.log('reEncTransactionId ', reEncTransactionId);
       const reEncryptTransactionId = ethers.utils.hexlify(stringToUint8Array(reEncTransactionId));
       console.log('reEncryptTransactionId', reEncryptTransactionId);
