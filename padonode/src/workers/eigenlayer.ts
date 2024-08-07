@@ -208,11 +208,10 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
   const key = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
   worker.key = key;
 
-  // todo
   const arweave = Arweave.init({
-    host: '127.0.0.1',
-    port: 1984,
-    protocol: 'http'
+    host: cfg.arweaveApiHost,
+    port: cfg.arweaveApiPort,
+    protocol: cfg.arweaveApiProtocol,
   });
   worker.arweave = arweave;
 
