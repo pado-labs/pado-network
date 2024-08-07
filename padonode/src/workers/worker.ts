@@ -95,6 +95,11 @@ export async function runWorker(worker: IWorker | IWorker[]) {
     workers = [worker];
   }
 
+  if (workers.length == 0) {
+    console.log('no workers');
+    return;
+  }
+
   await _runWorkers(workers);
 }
 

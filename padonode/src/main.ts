@@ -19,15 +19,21 @@ async function main() {
 
   let workers = [];
 
-  if (cfg.enableAO) {
-    const aoWorker = await newAOWorker(cfg, logger, nodeApi, registry);
-    workers.push(aoWorker);
+  try {
+    if (cfg.enableAO) {
+      const aoWorker = await newAOWorker(cfg, logger, nodeApi, registry);
+      workers.push(aoWorker);
+    }
+
+    if (cfg.enableEigenLayer) {
+      const elWorker = await newEigenLayerWorker(cfg, logger, nodeApi, registry);
+      workers.push(elWorker);
+    }
+  } catch (error) {
+    console.log('new worker failed:', error);
+    return;
   }
 
-  if (cfg.enableEigenLayer) {
-    const elWorker = await newEigenLayerWorker(cfg, logger, nodeApi, registry);
-    workers.push(elWorker);
-  }
   console.log('workers', typeof workers, workers.length);
 
   await runWorker(workers);
