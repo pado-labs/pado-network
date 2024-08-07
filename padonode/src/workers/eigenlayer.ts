@@ -24,15 +24,16 @@ import { readFileSync } from "node:fs";
 import { createDataItemSigner } from "@permaweb/aoconnect";
 import Arweave from "arweave";
 import { reencrypt_v2 } from "../crypto/lhe";
-import { fetchData, submitData } from "../clients/ar";
+import { buildStorageClient, StorageClient, StorageType } from "../clients/storage";
 
 
 export class EigenLayerWorker extends AbstractWorker {
   ecdsaWallet!: ethers.Wallet
   clients!: Clients;
   padoClient!: PadoClient;
+  storageClient!: StorageClient;
   eigenMetrics!: EigenMetrics;
-  key!: any;
+  lheKey!: any;
   arWallet!: any;
   arSigner!: any;
   arweave!: any;
@@ -65,8 +66,8 @@ export class EigenLayerWorker extends AbstractWorker {
       let publicKeys = [];
       {
         // upload pk to arweave
-        let pkData = Uint8Array.from(Buffer.from(this.key.pk, 'hex'));
-        const pkTransactionId = await submitData(this.cfg.dataStorageType, this.arweave, pkData, this.arWallet);
+        let pkData = Uint8Array.from(Buffer.from(this.lheKey.pk, 'hex'));
+        const pkTransactionId = await this.storageClient.submitData(this.cfg.dataStorageType, pkData);
         console.log('pkTransactionId ', pkTransactionId);
         const pkTransactionIdHex = ethers.utils.hexlify(stringToUint8Array(pkTransactionId));
         console.log('pkTransactionIdHex ', pkTransactionIdHex);
@@ -144,7 +145,7 @@ export class EigenLayerWorker extends AbstractWorker {
       const dataIdArr = ethers.utils.arrayify(dataInfo.dataContent);
       const transactionId = Uint8ArrayToString(dataIdArr);
       console.log('data transactionId ', transactionId);
-      const enc_data = await fetchData(this.cfg.dataStorageType, this.arweave, transactionId);
+      const enc_data = await this.storageClient.fetchData(this.cfg.dataStorageType, transactionId);
       // console.log('enc_data ', enc_data);
 
       // re-encrypt if task.taskType is DataSharing
@@ -153,7 +154,7 @@ export class EigenLayerWorker extends AbstractWorker {
         this.logger.error(`taskId:${task.taskId}, workerId:${workerId} not in dataInfo.workerIds`);
         continue;
       }
-      const node_sk = this.key.sk;
+      const node_sk = this.lheKey.sk;
       let consumer_pk;
       {
         // get consumer pk from ar
@@ -161,7 +162,7 @@ export class EigenLayerWorker extends AbstractWorker {
         const dataIdArr = ethers.utils.arrayify(task.consumerPk);
         const transactionId = Uint8ArrayToString(dataIdArr);
         console.log('consumerPk transactionId ', transactionId);
-        const pkData = await fetchData(this.cfg.dataStorageType, this.arweave, transactionId);
+        const pkData = await this.storageClient.fetchData(this.cfg.dataStorageType, transactionId);
         consumer_pk = Buffer.from(pkData).toString('hex');
       }
 
@@ -171,7 +172,7 @@ export class EigenLayerWorker extends AbstractWorker {
       // console.log("reencrypt reenc_sk=", reenc_sk);
 
       // update result to arweave
-      const reEncTransactionId = await submitData(this.cfg.dataStorageType, this.arweave, reenc_sk, this.arWallet);
+      const reEncTransactionId = await this.storageClient.submitData(this.cfg.dataStorageType, reenc_sk);
       console.log('reEncTransactionId ', reEncTransactionId);
       const reEncryptTransactionId = ethers.utils.hexlify(stringToUint8Array(reEncTransactionId));
       console.log('reEncryptTransactionId', reEncryptTransactionId);
@@ -210,20 +211,25 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
 
   worker.padoClient = await buildPadoClient(ecdsaWallet, cfg.dataMgtAddress, cfg.taskMgtAddress, cfg.workerMgtAddress, logger);
 
-  const wallet = JSON.parse(readFileSync(cfg.arWalletPath).toString());
-  const signer = createDataItemSigner(wallet);
-  worker.arWallet = wallet;
-  worker.arSigner = signer;
+  const lheKey = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
+  worker.lheKey = lheKey;
 
-  const key = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
-  worker.key = key;
+  if (cfg.dataStorageType == StorageType.ARSEEDING_AR || cfg.dataStorageType == StorageType.ARWEAVE) {
+    const wallet = JSON.parse(readFileSync(cfg.arWalletPath).toString());
+    const signer = createDataItemSigner(wallet);
+    worker.arWallet = wallet;
+    worker.arSigner = signer;
 
-  const arweave = Arweave.init({
-    host: cfg.arweaveApiHost,
-    port: cfg.arweaveApiPort,
-    protocol: cfg.arweaveApiProtocol,
-  });
-  worker.arweave = arweave;
+    const arweave = Arweave.init({
+      host: cfg.arweaveApiHost,
+      port: cfg.arweaveApiPort,
+      protocol: cfg.arweaveApiProtocol,
+    });
+    worker.arweave = arweave;
+  }
+
+  worker.storageClient = await buildStorageClient(worker.ecdsaWallet, worker.arWallet, worker.arweave, worker.logger);
+
 
   // @ts-ignore
   const rpcCollector = new RpcCollector(cfg.avsName, registry);

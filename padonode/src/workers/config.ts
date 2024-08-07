@@ -1,4 +1,4 @@
-import { StorageType } from '../clients/ar';
+import { StorageType } from '../clients/storage';
 import { getOptValue } from '../utils';
 import * as dotenv from "dotenv";
 dotenv.config();

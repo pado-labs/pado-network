@@ -43,8 +43,7 @@ export const submitDataToArseedingArConnect = async (arweave: Arweave, data: Uin
   return order.itemId;
 };
 
-export const submitDataToArseedingMetamask = async (data: Uint8Array, symbol: string) => {
-  const ecdsaPrivateKey = "";
+export const submitDataToArseedingMetamask = async (data: Uint8Array, ecdsaPrivateKey: string, symbol: string) => {
   const instance = genNodeAPI(ecdsaPrivateKey)
   const payCurrencyTag = symbolTags[symbol];
   const options = {
