@@ -4,7 +4,9 @@
   - [Configurations](#configurations)
     - [ECDSA and BLS Key](#ecdsa-and-bls-key)
     - [LHE Key](#lhe-key)
-    - [AR Wallet](#ar-wallet)
+  - [Storage](#storage)
+    - [ARSEEDING\_ETH](#arseeding_eth)
+    - [ARWEAVE](#arweave)
   - [Registry](#registry)
     - [(Optional) Register as Operator on EigenLayer](#optional-register-as-operator-on-eigenlayer)
     - [Register to PADO AVS](#register-to-pado-avs)
@@ -71,7 +73,7 @@ BLS_KEY_PASSWORD=''
 
 ### LHE Key
 
-LHE key is used for data sharing, use the following command to generate it.
+The LHE key is used for data sharing, use the following command to generate it.
 
 ```sh
 npm run generate-lhe-key [--output  <FILEPATH>]
@@ -91,20 +93,38 @@ LHE_KEY_PATH='/path/to/your/lhe.key.json'
 ```
 
 
-### AR Wallet
+## Storage
+
+Storing data on a contract is expensive, so we use [arweave](https://www.arweave.org/) which is cheaper to store data. There are two ways to access arweave data. **Choose one of the them**.
+
+### ARSEEDING_ETH
+
+Set the storage type to `ARSEEDING_ETH` (support more in the feature).
+
+```conf
+DATA_STORAGE_TYPE='ARSEEDING_ETH'
+```
+
+**NOTE:** In order to use [Arseeding](https://web3infra.dev/docs/arseeding/introduction/lightNode), you need to first transfer some ETH to [everPay](https://app.everpay.io/).
+
+
+### ARWEAVE
 
 We need to use two types of wallets, the previously mentioned Ethereum wallet and the AR wallet for data storage. 
 
-If you don't have an AR wallet, you can install one from [ArConnect](https://www.arconnect.io/download), and then export the wallet from ArConnect and store it to somewhere.
+*If you don't have an AR wallet, you can install one from [ArConnect](https://www.arconnect.io/download), and then export the wallet from ArConnect and store it to somewhere.*
 
 
-Next, fill in the file path of the AR wallet.
+Next, fill in the file path of the AR wallet,
 
 ```conf
-#
-# AR Wallet, for storage
-#
-export AR_WALLET_PATH='/path/to/your/arwallet.json'
+AR_WALLET_PATH='/path/to/your/arwallet.json'
+```
+
+and set the storage type to `ARWEAVE`.
+
+```conf
+DATA_STORAGE_TYPE='ARWEAVE'
 ```
 
 **NOTE**: as with the previously mentioned ethereum wallet, fund some AR to the wallet.
