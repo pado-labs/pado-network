@@ -61,7 +61,17 @@ export class EigenLayerWorker extends AbstractWorker {
       const socket = cfg.operatorSocketIpPort;
 
       const taskTypes = [0]; // todo
-      const publicKeys = ["0x" + this.key.pk];
+
+      let publicKeys = [];
+      {
+        // upload pk to arweave
+        let pkData = Uint8Array.from(Buffer.from(this.key.pk, 'hex'));
+        const pkTransactionId = await submitData(this.cfg.storageType, this.arweave, pkData, this.arWallet);
+        console.log('pkTransactionId ', pkTransactionId);
+        const pkTransactionIdHex = ethers.utils.hexlify(stringToUint8Array(pkTransactionId));
+        console.log('pkTransactionIdHex ', pkTransactionIdHex);
+        publicKeys.push(pkTransactionIdHex);
+      }
 
       const res = await this.clients.avsClient.registerOperatorInQuorumWithAVSWorkerManager(
         taskTypes,
@@ -111,7 +121,7 @@ export class EigenLayerWorker extends AbstractWorker {
     // const tasks = await this.padoClient.getPendingTasks();
     // console.log('getPendingTasks', tasks.length);
 
-    const workerId = await this._getWorkId(); // todo: to outside
+    const workerId = await this._getWorkId(); // todo: to outside, valid check
     console.log('workerId', workerId);
 
     const tasks = await this.padoClient.getPendingTasksByWorkerId(workerId);
@@ -140,7 +150,8 @@ export class EigenLayerWorker extends AbstractWorker {
       // re-encrypt if task.taskType is DataSharing
       const enc_sk_index = dataInfo.workerIds.indexOf(workerId); // assuming the order of workerIds
       if (enc_sk_index == -1) {
-        console.log('error, cannot fand worker id');
+        this.logger.error(`taskId:${task.taskId}, workerId:${workerId} not in dataInfo.workerIds`);
+        continue;
       }
       const node_sk = this.key.sk;
       let consumer_pk;
@@ -154,7 +165,6 @@ export class EigenLayerWorker extends AbstractWorker {
         consumer_pk = Buffer.from(pkData).toString('hex');
       }
 
-      // const consumer_pk = task.consumerPk.slice(2); // todo, also from ar?
       // console.log('node_sk:', node_sk)
       // console.log('consumer_pk:', consumer_pk)
       const reenc_sk = reencrypt_v2(enc_sk_index + 1, node_sk, consumer_pk, enc_data);
