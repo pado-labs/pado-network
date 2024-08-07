@@ -40,6 +40,10 @@ export class EnvConfig {
   aoNodeRegistryProcessId: string;
   aoTasksProcessId: string;
 
+  // ARWEAVE API CONFIG
+  arweaveApiHost: string;
+  arweaveApiPort: number;
+  arweaveApiProtocol: string;
 
   // Enables
   enableEigenLayer: boolean;
@@ -85,6 +89,11 @@ export class EnvConfig {
     this.aoDataRegistryProcessId = getOptValue(process.env.AO_DATAREGISTRY_PROCESS_ID, "");
     this.aoNodeRegistryProcessId = getOptValue(process.env.AO_NODEREGISTRY_PROCESS_ID, "");
     this.aoTasksProcessId = getOptValue(process.env.AO_TASKS_PROCESS_ID, "");
+
+    // ARWEAVE API CONFIG
+    this.arweaveApiHost = getOptValue(process.env.ARWEAVE_API_CONFIG_HOST, "arweave.net");
+    this.arweaveApiPort = getOptValue(process.env.ARWEAVE_API_CONFIG_PORT, 443);
+    this.arweaveApiProtocol = getOptValue(process.env.ARWEAVE_API_CONFIG_PROTOCOL, "https");
 
     // Enables
     this.enableEigenLayer = getOptValue(process.env.ENABLE_EIGEN_LAYER, true);
