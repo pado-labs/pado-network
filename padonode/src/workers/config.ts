@@ -45,7 +45,7 @@ export class EnvConfig {
   arweaveApiPort: number;
   arweaveApiProtocol: string;
 
-  // storage type: ARSEEDING, ARWEAVE
+  // storage type: ARSEEDING_ETH, ARSEEDING_AR, ARWEAVE
   dataStorageType: StorageType;
 
   // Enables
@@ -98,7 +98,7 @@ export class EnvConfig {
     this.arweaveApiPort = getOptValue(process.env.ARWEAVE_API_CONFIG_PORT, 443);
     this.arweaveApiProtocol = getOptValue(process.env.ARWEAVE_API_CONFIG_PROTOCOL, "https");
 
-    const dataStorageType = getOptValue(process.env.DATA_STORAGE_TYPE, "ARSEEDING");
+    const dataStorageType = getOptValue(process.env.DATA_STORAGE_TYPE, "ARSEEDING_ETH");
     this.dataStorageType = StorageType[dataStorageType as keyof typeof StorageType];
 
     // Enables

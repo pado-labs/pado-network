@@ -1,5 +1,5 @@
 import Arweave from "arweave";
-import { getDataFromArseeding, submitDataToArseeding } from "./internal/arseeding";
+import { getDataFromArseeding, submitDataToArseedingArConnect, submitDataToArseedingMetamask } from "./internal/arseeding";
 import { getDataFromAR, submitDataToAR } from "./internal/arweave";
 
 
@@ -10,7 +10,8 @@ export const ARConfig = {
 };
 
 export enum StorageType {
-  ARSEEDING,
+  ARSEEDING_ETH,
+  ARSEEDING_AR,
   ARWEAVE,
 };
 
@@ -24,10 +25,16 @@ export enum StorageType {
  */
 export async function submitData(storageType: StorageType, arweave: Arweave, data: Uint8Array, arWallet: any): Promise<string> {
   let transactionId;
-  if (storageType === StorageType.ARSEEDING) {
-    transactionId = await submitDataToArseeding(arweave, data, arWallet, undefined);
-  } else {
-    transactionId = await submitDataToAR(arweave, data, arWallet);
+  switch (storageType) {
+    case StorageType.ARSEEDING_ETH:
+      transactionId = await submitDataToArseedingMetamask(data, 'ethereum-eth');
+      break;
+    case StorageType.ARSEEDING_AR:
+      transactionId = await submitDataToArseedingArConnect(arweave, data, arWallet, 'ethereum-ar');
+      break;
+    case StorageType.ARWEAVE:
+      transactionId = await submitDataToAR(arweave, data, arWallet);
+      break;
   }
   return transactionId;
 }
@@ -41,10 +48,15 @@ export async function submitData(storageType: StorageType, arweave: Arweave, dat
  */
 export async function fetchData(storageType: StorageType, arweave: Arweave, transactionId: string): Promise<Uint8Array> {
   let data;
-  if (storageType === StorageType.ARSEEDING) {
-    data = await getDataFromArseeding(transactionId);
-  } else {
-    data = await getDataFromAR(arweave, transactionId);
+  switch (storageType) {
+    case StorageType.ARSEEDING_ETH:
+    case StorageType.ARSEEDING_AR:
+      data = await getDataFromArseeding(transactionId);
+      break;
+    case StorageType.ARWEAVE:
+      data = await getDataFromAR(arweave, transactionId);
+      break;
   }
+
   return data;
 }
