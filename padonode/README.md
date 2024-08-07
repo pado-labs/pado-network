@@ -6,6 +6,7 @@
     - [(Optional) Register as Operator on EigenLayer](#optional-register-as-operator-on-eigenlayer)
     - [Register to PADO AVS](#register-to-pado-avs)
     - [Get Operator ID](#get-operator-id)
+  - [Run Task](#run-task)
 
 
 # PADO Node
@@ -115,6 +116,25 @@ npm run register:pado-avs <quorum-id-List>
 
 ### Get Operator ID
 
+Once have registered to AVS.
+
 ```sh
 npm run get-operator-id
 ```
+
+
+## Run Task
+
+
+```conf
+#
+# Enables
+#
+ENABLE_EIGEN_LAYER=true
+ENABLE_AO=true
+```
+
+```sh
+npm run task
+```
+
