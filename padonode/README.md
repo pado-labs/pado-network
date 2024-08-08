@@ -76,7 +76,7 @@ BLS_KEY_PASSWORD=''
 The LHE key is used for data sharing, use the following command to generate it.
 
 ```sh
-npm run generate-lhe-key [--output  <FILEPATH>]
+npm run generate-lhe-key [-- --output <FILEPATH>]
 ```
 
 The default generation is to `./lhe.key.json`, you can specify the output file via `--output  <FILEPATH>`.
