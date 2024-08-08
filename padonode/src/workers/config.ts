@@ -102,8 +102,8 @@ export class EnvConfig {
     this.dataStorageType = StorageType[dataStorageType as keyof typeof StorageType];
 
     // Enables
-    this.enableEigenLayer = getOptValue(process.env.ENABLE_EIGEN_LAYER, true);
-    this.enableAO = getOptValue(process.env.ENABLE_AO, true);
+    this.enableEigenLayer = getOptValue(process.env.ENABLE_EIGEN_LAYER, false);
+    this.enableAO = getOptValue(process.env.ENABLE_AO, false);
   }
 };
 
