@@ -1,5 +1,6 @@
 import Arweave from 'arweave';
 import { bundleAndSignData, createData, ArweaveSigner, Bundle } from "arbundles";
+import "./proxy.js"
 
 type createTransactionParamsTuple = [{ data: any }, any?];
 type signParamsTuple = [any, any?];

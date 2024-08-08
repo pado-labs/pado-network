@@ -1,4 +1,4 @@
-import { StorageType } from '../clients/ar';
+import { StorageType } from '../clients/storage';
 import { getOptValue } from '../utils';
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -44,6 +44,9 @@ export class EnvConfig {
   arweaveApiHost: string;
   arweaveApiPort: number;
   arweaveApiProtocol: string;
+
+  // storage type: ARSEEDING_ETH, ARSEEDING_AR, ARWEAVE
+  dataStorageType: StorageType;
 
   // Enables
   enableEigenLayer: boolean;
@@ -95,6 +98,9 @@ export class EnvConfig {
     this.arweaveApiPort = getOptValue(process.env.ARWEAVE_API_CONFIG_PORT, 443);
     this.arweaveApiProtocol = getOptValue(process.env.ARWEAVE_API_CONFIG_PROTOCOL, "https");
 
+    const dataStorageType = getOptValue(process.env.DATA_STORAGE_TYPE, "ARSEEDING_ETH");
+    this.dataStorageType = StorageType[dataStorageType as keyof typeof StorageType];
+
     // Enables
     this.enableEigenLayer = getOptValue(process.env.ENABLE_EIGEN_LAYER, true);
     this.enableAO = getOptValue(process.env.ENABLE_AO, true);
@@ -104,7 +110,6 @@ export class EnvConfig {
 export class WorkerConfig extends EnvConfig {
   avsName: string = "PADO";
   nodeVersion: string = "v1.0.0";
-  storageType: StorageType = StorageType.ARWEAVE;
   constructor() {
     super();
   }
