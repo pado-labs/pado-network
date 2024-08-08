@@ -179,7 +179,7 @@ export async function buildPadoClient(
   const taskMgt = new ethers.Contract(taskMgtAddress, taskMgtABI, ecdsaWallet);
   const workerMgt = new ethers.Contract(workerMgtAddress, workerMgtABI, ecdsaWallet);
 
-  const feeMgtAddress: string = await taskMgt._feeMgt();
+  const feeMgtAddress: string = await taskMgt.feeMgt();
   const feeMgt = new ethers.Contract(feeMgtAddress, feeMgtABI, ecdsaWallet);
 
   const padoClient = new PadoClient(
