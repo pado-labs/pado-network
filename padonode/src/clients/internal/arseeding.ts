@@ -2,7 +2,7 @@ import { ArweaveSigner, genNodeAPI } from 'arseeding-js';
 import { createAndSubmitItem } from 'arseeding-js/cjs/submitOrder';
 import Arweave from 'arweave';
 import { newEverpayByRSA, payOrder } from 'arseeding-js/cjs/payOrder';
-
+import "./proxy.js"
 
 const arseedingUrl = 'https://arseed.web3infra.dev';
 
