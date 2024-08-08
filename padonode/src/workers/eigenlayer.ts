@@ -228,7 +228,13 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
     worker.arweave = arweave;
   }
 
-  worker.storageClient = await buildStorageClient(worker.ecdsaWallet, worker.arWallet, worker.arweave, worker.logger);
+  worker.storageClient = await buildStorageClient(
+    worker.ecdsaWallet,
+    worker.arWallet,
+    worker.arweave,
+    true,
+    worker.logger,
+  );
 
 
   // @ts-ignore

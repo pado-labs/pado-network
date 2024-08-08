@@ -26,6 +26,8 @@ export class StorageClient {
     // @ts-ignore
     private readonly arweave: Arweave,
     // @ts-ignore
+    private readonly noPay: boolean,
+    // @ts-ignore
     private readonly logger: Logger,
   ) {
   }
@@ -42,10 +44,10 @@ export class StorageClient {
     let transactionId;
     switch (storageType) {
       case StorageType.ARSEEDING_ETH:
-        transactionId = await submitDataToArseedingMetamask(data, this.ecdsaWallet.privateKey, 'ethereum-eth');
+        transactionId = await submitDataToArseedingMetamask(data, this.ecdsaWallet.privateKey, 'ethereum-eth', this.noPay);
         break;
       case StorageType.ARSEEDING_AR:
-        transactionId = await submitDataToArseedingArConnect(this.arweave, data, this.arWallet, 'ethereum-ar');
+        transactionId = await submitDataToArseedingArConnect(this.arweave, data, this.arWallet, 'ethereum-ar', this.noPay);
         break;
       case StorageType.ARWEAVE:
         transactionId = await submitDataToAR(this.arweave, data, this.arWallet);
@@ -81,12 +83,14 @@ export async function buildStorageClient(
   ecdsaWallet: ethers.Wallet,
   arWallet: any,
   arweave: Arweave,
+  noPay: boolean,
   logger: Logger,
 ): Promise<StorageClient> {
   const storageClient = new StorageClient(
     ecdsaWallet,
     arWallet,
     arweave,
+    noPay,
     logger,
   );
   return storageClient;

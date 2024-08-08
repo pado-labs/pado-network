@@ -1,7 +1,7 @@
-import { ArweaveSigner, genNodeAPI } from 'arseeding-js';
+import { ArweaveSigner, EthereumSigner } from 'arseeding-js';
 import { createAndSubmitItem } from 'arseeding-js/cjs/submitOrder';
 import Arweave from 'arweave';
-import { newEverpayByRSA, payOrder } from 'arseeding-js/cjs/payOrder';
+import { newEverpayByEcc, newEverpayByRSA, payOrder } from 'arseeding-js/cjs/payOrder';
 import "./proxy.js"
 
 const arseedingUrl = 'https://arseed.web3infra.dev';
@@ -13,9 +13,8 @@ const symbolTags = Object({
   'ethereum-ar': 'arweave,ethereum-ar-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,0x4fadc7a98f2dc96510e42dd1a74141eeae0c1543',
 });
 
-export const submitDataToArseedingArConnect = async (arweave: Arweave, data: Uint8Array, wallet: any, symbol: string) => {
-  const signer = new ArweaveSigner(wallet);
 
+const _submitDataToArseeding = async (data: Uint8Array, signer: any, pay: any, symbol: string, noPay: boolean) => {
   const options = {
     tags: [
       { name: 'k1', value: 'v1' },
@@ -32,29 +31,29 @@ export const submitDataToArseedingArConnect = async (arweave: Arweave, data: Uin
 
   // @ts-ignore
   const order = await createAndSubmitItem(data.buffer, options, config);
-  console.log('order', order);
+  console.log('order', noPay ? 'without pay' : 'with pay', '\n', order);
+  if (noPay) {
+    return order.itemId;
+  }
 
   //pay for order
-  const address = await arweave.wallets.jwkToAddress(wallet);
-  const pay = newEverpayByRSA(wallet, address);
   const everHash = await payOrder(pay, order);
   console.log('everHash:', everHash);
 
   return order.itemId;
 };
 
-export const submitDataToArseedingMetamask = async (data: Uint8Array, ecdsaPrivateKey: string, symbol: string) => {
-  const instance = genNodeAPI(ecdsaPrivateKey)
-  const payCurrencyTag = symbolTags[symbol];
-  const options = {
-    tags: [
-      { name: 'k1', value: 'v1' },
-      { name: 'Content-Type', value: 'application/octet-stream' }
-    ]
-  };
+export const submitDataToArseedingMetamask = async (data: Uint8Array, ecdsaPrivateKey: string, symbol: string, noPay: boolean) => {
+  const signer = new EthereumSigner(ecdsaPrivateKey.substring(2));
+  const pay = newEverpayByEcc(ecdsaPrivateKey);
+  return await _submitDataToArseeding(data, signer, pay, symbol, noPay);
+};
 
-  const res = await instance.sendAndPay(arseedingUrl, Buffer.from(data), payCurrencyTag, options)
-  return res.order.itemId;
+export const submitDataToArseedingArConnect = async (arweave: Arweave, data: Uint8Array, wallet: any, symbol: string, noPay: boolean) => {
+  const signer = new ArweaveSigner(wallet);
+  const address = await arweave.wallets.jwkToAddress(wallet);
+  const pay = newEverpayByRSA(wallet, address);
+  return await _submitDataToArseeding(data, signer, pay, symbol, noPay);
 };
 
 export const getDataFromArseeding = async (transactionId: string): Promise<Uint8Array> => {
