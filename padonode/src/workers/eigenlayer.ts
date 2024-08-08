@@ -37,10 +37,12 @@ export class EigenLayerWorker extends AbstractWorker {
   arWallet!: any;
   arSigner!: any;
   arweave!: any;
+  failedTasks: Map<string, number>;
 
   constructor(chainType: ChainType = ChainType.Ethereum) {
     super();
     this.chainType = chainType;
+    this.failedTasks = new Map();
   }
 
   async register(params: RegisterParams): Promise<RegisterResult> {
@@ -130,6 +132,17 @@ export class EigenLayerWorker extends AbstractWorker {
     // console.log('getPendingTasksByWorkerId', tasks);
 
     for (const task of tasks) {
+      {
+        // todo
+        const count = this.failedTasks.get(task.taskId);
+        if (count) {
+          console.log('task.task', task.taskId, 'failed counts:', count);
+          if (count > 10) {
+            continue;
+          }
+        }
+      }
+
       try {
         console.log('-------------------------------------------');
         console.log('task.task', task.taskId);
@@ -185,6 +198,12 @@ export class EigenLayerWorker extends AbstractWorker {
         console.log('reportResult', res);
       } catch (error) {
         console.log('task.task', task.taskId, 'with error', error)
+
+        if (!this.failedTasks.has(task.taskId)) {
+          this.failedTasks.set(task.taskId, 0);
+        }
+        const count = this.failedTasks.get(task.taskId) as number;
+        this.failedTasks.set(task.taskId, count + 1);
       }
     }
     // TODO add something to monitor if failed
