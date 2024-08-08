@@ -130,58 +130,62 @@ export class EigenLayerWorker extends AbstractWorker {
     // console.log('getPendingTasksByWorkerId', tasks);
 
     for (const task of tasks) {
-      console.log('-------------------------------------------');
-      console.log('task.task', task.taskId);
-      console.log('task.taskType', task.taskType);
-      // console.log('task.consumerPk', task.consumerPk); // todo, also update to ar?
-      console.log('task.dataId', task.dataId);
-      // console.log('task.computingInfo', task.computingInfo);
+      try {
+        console.log('-------------------------------------------');
+        console.log('task.task', task.taskId);
+        console.log('task.taskType', task.taskType);
+        // console.log('task.consumerPk', task.consumerPk); // todo, also update to ar?
+        console.log('task.dataId', task.dataId);
+        // console.log('task.computingInfo', task.computingInfo);
 
 
-      // get data from arweave
-      const dataInfo = await this.padoClient.getDataById(task.dataId);
-      console.log('dataInfo.dataContent ', dataInfo.dataContent);
-      console.log('dataInfo.workerIds ', dataInfo.workerIds);
-      const dataIdArr = ethers.utils.arrayify(dataInfo.dataContent);
-      const transactionId = Uint8ArrayToString(dataIdArr);
-      console.log('data transactionId ', transactionId);
-      const enc_data = await this.storageClient.fetchData(this.cfg.dataStorageType, transactionId);
-      // console.log('enc_data ', enc_data);
-
-      // re-encrypt if task.taskType is DataSharing
-      const enc_sk_index = dataInfo.workerIds.indexOf(workerId); // assuming the order of workerIds
-      if (enc_sk_index == -1) {
-        this.logger.error(`taskId:${task.taskId}, workerId:${workerId} not in dataInfo.workerIds`);
-        continue;
-      }
-      const node_sk = this.lheKey.sk;
-      let consumer_pk;
-      {
-        // get consumer pk from ar
-        console.log('task.consumerPk ', task.consumerPk);
-        const dataIdArr = ethers.utils.arrayify(task.consumerPk);
+        // get data from arweave
+        const dataInfo = await this.padoClient.getDataById(task.dataId);
+        console.log('dataInfo.dataContent ', dataInfo.dataContent);
+        console.log('dataInfo.workerIds ', dataInfo.workerIds);
+        const dataIdArr = ethers.utils.arrayify(dataInfo.dataContent);
         const transactionId = Uint8ArrayToString(dataIdArr);
-        console.log('consumerPk transactionId ', transactionId);
-        const pkData = await this.storageClient.fetchData(this.cfg.dataStorageType, transactionId);
-        consumer_pk = Buffer.from(pkData).toString('hex');
+        console.log('data transactionId ', transactionId);
+        const enc_data = await this.storageClient.fetchData(this.cfg.dataStorageType, transactionId);
+        // console.log('enc_data ', enc_data);
+
+        // re-encrypt if task.taskType is DataSharing
+        const enc_sk_index = dataInfo.workerIds.indexOf(workerId); // assuming the order of workerIds
+        if (enc_sk_index == -1) {
+          this.logger.error(`taskId:${task.taskId}, workerId:${workerId} not in dataInfo.workerIds`);
+          continue;
+        }
+        const node_sk = this.lheKey.sk;
+        let consumer_pk;
+        {
+          // get consumer pk from ar
+          console.log('task.consumerPk ', task.consumerPk);
+          const dataIdArr = ethers.utils.arrayify(task.consumerPk);
+          const transactionId = Uint8ArrayToString(dataIdArr);
+          console.log('consumerPk transactionId ', transactionId);
+          const pkData = await this.storageClient.fetchData(this.cfg.dataStorageType, transactionId);
+          consumer_pk = Buffer.from(pkData).toString('hex');
+        }
+
+        // console.log('node_sk:', node_sk)
+        // console.log('consumer_pk:', consumer_pk)
+        const reenc_sk = reencrypt_v2(enc_sk_index + 1, node_sk, consumer_pk, enc_data);
+        // console.log("reencrypt reenc_sk=", reenc_sk);
+
+        // update result to arweave
+        const reEncTransactionId = await this.storageClient.submitData(this.cfg.dataStorageType, reenc_sk);
+        console.log('reEncTransactionId ', reEncTransactionId);
+        const reEncryptTransactionId = ethers.utils.hexlify(stringToUint8Array(reEncTransactionId));
+        console.log('reEncryptTransactionId', reEncryptTransactionId);
+
+
+        // report result
+        // todo: how when failed?
+        const res = await this.padoClient.reportResult(task.taskId, workerId, reEncryptTransactionId);
+        console.log('reportResult', res);
+      } catch (error) {
+        console.log('task.task', task.taskId, 'with error', error)
       }
-
-      // console.log('node_sk:', node_sk)
-      // console.log('consumer_pk:', consumer_pk)
-      const reenc_sk = reencrypt_v2(enc_sk_index + 1, node_sk, consumer_pk, enc_data);
-      // console.log("reencrypt reenc_sk=", reenc_sk);
-
-      // update result to arweave
-      const reEncTransactionId = await this.storageClient.submitData(this.cfg.dataStorageType, reenc_sk);
-      console.log('reEncTransactionId ', reEncTransactionId);
-      const reEncryptTransactionId = ethers.utils.hexlify(stringToUint8Array(reEncTransactionId));
-      console.log('reEncryptTransactionId', reEncryptTransactionId);
-
-
-      // report result
-      // todo: how when failed?
-      const res = await this.padoClient.reportResult(task.taskId, workerId, reEncryptTransactionId);
-      console.log('reportResult', res);
     }
     // TODO add something to monitor if failed
   }

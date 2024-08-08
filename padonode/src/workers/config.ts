@@ -103,7 +103,7 @@ export class EnvConfig {
 
     // Enables
     this.enableEigenLayer = getOptValue(process.env.ENABLE_EIGEN_LAYER, true);
-    this.enableAO = getOptValue(process.env.ENABLE_AO, true);
+    this.enableAO = getOptValue(process.env.ENABLE_AO, false);
   }
 };
 
