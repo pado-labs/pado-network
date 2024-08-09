@@ -141,17 +141,26 @@ export class PadoClient {
 
 
   async reportResult(taskId: string, workerId: string, result: string): Promise<any | null> {
-    let tx = await this.taskMgt.reportResult(taskId, workerId, result);
-    const receipt = await tx.wait();
-    this.logger.debug(`reportResult gasUsed: ${receipt.gasUsed}`);
-    this.logger.info(`reportResult transactionHash: ${receipt.transactionHash}`);
-    const events = receipt.events;
-    for (const event of events) {
-      if (event.event === "ResultReported") {
-        return event.args;
+    try {
+      const tx = await this.taskMgt.reportResult(taskId, workerId, result);
+      const receipt = await tx.wait();
+      this.logger.debug(`reportResult gasUsed: ${receipt.gasUsed}`);
+      this.logger.info(`reportResult transactionHash: ${receipt.transactionHash}`);
+      const events = receipt.events;
+      for (const event of events) {
+        if (event.event === "ResultReported") {
+          return event.args;
+        }
+      }
+    } catch (error) {
+      console.log("reportResult error:\n", error, '\ntry callStatic');
+      try {
+        const tx = await this.taskMgt.callStatic.reportResult(taskId, workerId, result);
+        console.log("reportResult.callStatic tx:\n", tx);
+      } catch (error) {
+        console.log("reportResult.callStatic error:\n", error);
       }
     }
-
     return null;
   }
 
