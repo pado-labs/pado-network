@@ -7,6 +7,7 @@ dotenv.config();
 
 import { program } from "commander";
 program
+  .requiredOption('--name <NAME>', 'special a name.')
   .option('--lhe-key <PATH>', 'Path to the LHE-key file. Default: env.LHE_KEY_PATH.')
 
 program.parse();

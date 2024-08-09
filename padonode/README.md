@@ -172,9 +172,9 @@ Once successfully registered, you can start the task program. If necessary, e.g.
 
 
 ```sh
-npm run task
+npm run task <NAME>
 # If you want to start it as a background process:
-# nohup npm run task >logfile &
+# nohup npm run task <NAME> >logfile &
 ```
 
 ## Other Variables
