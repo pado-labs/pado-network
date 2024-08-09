@@ -194,8 +194,15 @@ export class EigenLayerWorker extends AbstractWorker {
 
         // report result
         // todo: how when failed?
-        const res = await this.padoClient.reportResult(task.taskId, workerId, reEncryptTransactionId);
-        console.log('reportResult', res);
+        try {
+          const res = await this.padoClient.reportResult(task.taskId, workerId, reEncryptTransactionId);
+          console.log('reportResult', res);
+        } catch (error) {
+          console.log('reportResult error', error, 'try 1s later');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          const res = await this.padoClient.reportResult(task.taskId, workerId, reEncryptTransactionId);
+          console.log('try1 reportResult', res);
+        }
       } catch (error) {
         console.log('task.task', task.taskId, 'with error', error)
 
