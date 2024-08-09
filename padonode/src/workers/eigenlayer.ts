@@ -198,15 +198,17 @@ export class EigenLayerWorker extends AbstractWorker {
         }, 'result');
 
         // report result
+        // TODO a simple way estimating the gas
+        const gasLimit = (task.computingInfo.n * 200000).toString();
         // todo: how when failed?
         try {
-          const res = await this.padoClient.reportResult(task.taskId, workerId, resultContent);
+          const res = await this.padoClient.reportResult(task.taskId, workerId, resultContent, gasLimit);
           if (!res) {
           }
         } catch (error) {
           console.log('reportResult error', error, 'try 1s later');
           await new Promise(resolve => setTimeout(resolve, 1000));
-          const res = await this.padoClient.reportResult(task.taskId, workerId, resultContent);
+          const res = await this.padoClient.reportResult(task.taskId, workerId, resultContent, gasLimit);
           console.log('try1 reportResult', res);
         }
       } catch (error) {

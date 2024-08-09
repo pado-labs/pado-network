@@ -127,9 +127,13 @@ export class PadoClient {
     return res;
   }
 
+  /**
+   * 
+   * @param workerId 
+   * @returns Task[]
+   */
   async getPendingTasksByWorkerId(workerId: string): Promise<any | null> {
     let res = await this.taskMgt.getPendingTasksByWorkerId(workerId);
-    // console.log('getPendingTasksByWorkerId res', res);
     return res;
   }
 
@@ -140,9 +144,9 @@ export class PadoClient {
   }
 
 
-  async reportResult(taskId: string, workerId: string, result: string): Promise<any | null> {
+  async reportResult(taskId: string, workerId: string, result: string, gasLimit: string): Promise<any | null> {
     try {
-      const tx = await this.taskMgt.reportResult(taskId, workerId, result);
+      const tx = await this.taskMgt.reportResult(taskId, workerId, result, { gasLimit: gasLimit });
       const receipt = await tx.wait();
       this.logger.debug(`reportResult gasUsed: ${receipt.gasUsed}`);
       this.logger.info(`reportResult transactionHash: ${receipt.transactionHash}`);
@@ -152,8 +156,15 @@ export class PadoClient {
           return event.args;
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log("reportResult error:\n", error, '\ntry callStatic');
+      if (error) {
+        if (error.error) {
+          if (error.error.message) {
+            console.error(`reportResult error: ${error.error.message}`);
+          }
+        }
+      }
       try {
         const tx = await this.taskMgt.callStatic.reportResult(taskId, workerId, result);
         console.log("reportResult.callStatic tx:\n", tx);
