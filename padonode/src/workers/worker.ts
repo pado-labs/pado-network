@@ -5,7 +5,6 @@ import { Registry } from 'prom-client';
 import { Metrics } from "../metrics/metrics";
 import { DoTaskParams, IWorker } from "./types";
 import { createWriteStream } from "node:fs";
-
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -38,10 +37,12 @@ export function initAll(): [WorkerConfig, Logger, NodeApi, Registry, Metrics] {
     { level: 'info', stream: createWriteStream('worker.info.log', { flags: 'a' }) },
     { level: 'fatal', stream: createWriteStream('worker.fatal.log', { flags: 'a' }) },
   ];
-  const logger = pino({ level: 'debug', timestamp: pino.stdTimeFunctions.isoTime }, pino.multistream(streams));
-  logger.debug('test debug');
-  logger.info('test info');
-  logger.fatal('test fatal');
+  const logger = pino({
+    base: { pid: undefined, hostname: undefined },
+    nestedKey: 'payload',
+    level: 'debug',
+    timestamp: pino.stdTimeFunctions.isoTime
+  }, pino.multistream(streams));
   const nodeApi = new NodeApi(cfg.nodeName, cfg.nodeVersion);
   const registry = new Registry();
   const metrics = new Metrics(logger, registry);
