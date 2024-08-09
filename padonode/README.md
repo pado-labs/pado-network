@@ -1,12 +1,10 @@
 - [PADO Node](#pado-node)
   - [Building](#building)
-  - [Setup](#setup)
+  - [Register as Operator on EigenLayer](#register-as-operator-on-eigenlayer)
   - [Configurations](#configurations)
     - [ECDSA and BLS Key](#ecdsa-and-bls-key)
     - [LHE Key](#lhe-key)
   - [Storage](#storage)
-    - [ARSEEDING\_ETH](#arseeding_eth)
-    - [ARWEAVE](#arweave)
   - [Registry](#registry)
     - [(Optional) Register as Operator on EigenLayer](#optional-register-as-operator-on-eigenlayer)
     - [Register to PADO AVS](#register-to-pado-avs)
@@ -31,13 +29,14 @@ npm run build
 **NOTE**: *The minimum version of NodeJS required is 18+.*
 
 
-## Setup
+## Register as Operator on EigenLayer
+
+
+**NOTE**: *You may skip this section if you are already a registered operator on the EigenLayer testnet and mainnet.*
 
 This setup step focuses on generating ecdsa keys, bls keys, and registering yourself as an operator on EigenLayer.
 
 Complete the following steps according to [EigenLayer guide](https://docs.eigenlayer.xyz/eigenlayer/operator-guides/operator-installation):
-
-**NOTE**: *You may skip the following steps if you are already a registered operator on the EigenLayer testnet and mainnet.*
 
 
 - [Install EigenLayer CLI](https://docs.eigenlayer.xyz/eigenlayer/operator-guides/operator-installation#cli-installation).
@@ -57,7 +56,7 @@ For the Ethernet Testnet(Holesky), copy `./config-files/.env.holesky` into `./.e
 
 ### ECDSA and BLS Key
 
-Fill in the file path and password of the ECDSA and BLS key you have generated according to [Setup](#setup).
+Fill in the file path and password of the ECDSA and BLS key you have generated according to [here](#register-as-operator-on-eigenlayer).
 
 ```conf
 #
@@ -95,47 +94,16 @@ LHE_KEY_PATH='/path/to/your/lhe.key.json'
 
 ## Storage
 
-Storing data on a contract is expensive, so we use [arweave](https://www.arweave.org/) which is cheaper to store data. There are two ways to access arweave data. **Choose one of the them**.
+Storing data on a contract is expensive, so we use [arweave](https://www.arweave.org/) which is cheaper to store data.
 
-### ARSEEDING_ETH
-
-Set the storage type to `ARSEEDING_ETH` (support more in the feature).
-
-```conf
-DATA_STORAGE_TYPE='ARSEEDING_ETH'
-```
-
-**NOTE:** In order to use [Arseeding](https://web3infra.dev/docs/arseeding/introduction/lightNode), you need to first transfer some ETH to [everPay](https://app.everpay.io/).
-
-
-### ARWEAVE
-
-We need to use two types of wallets, the previously mentioned Ethereum wallet and the AR wallet for data storage. 
-
-*If you don't have an AR wallet, you can install one from [ArConnect](https://www.arconnect.io/download), and then export the wallet from ArConnect and store it to somewhere.*
-
-
-Next, fill in the file path of the AR wallet,
-
-```conf
-AR_WALLET_PATH='/path/to/your/arwallet.json'
-```
-
-and set the storage type to `ARWEAVE`.
-
-```conf
-DATA_STORAGE_TYPE='ARWEAVE'
-```
-
-**NOTE**: as with the previously mentioned ethereum wallet, fund some AR to the wallet.
-
+In order to use [Arseeding](https://web3infra.dev/docs/arseeding/introduction/lightNode), you need to first transfer some ETH to [everPay](https://app.everpay.io/), which wallet corresponds to the ecdsa key previously mentioned above.
 
 
 ## Registry
 
 ### (Optional) Register as Operator on EigenLayer
 
-This is an optional way to register as operator on EigenLayer if you have not yet registered. We recommend registering using the method in the [Setup](#setup) section.
+This is an optional way to register as operator on EigenLayer if you have not yet registered. We recommend registering using the method in the [previous](#register-as-operator-on-eigenlayer) section.
 
 <br/>
 
