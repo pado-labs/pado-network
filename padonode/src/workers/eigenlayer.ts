@@ -270,7 +270,7 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
     worker.ecdsaWallet,
     worker.arWallet,
     worker.arweave,
-    true,
+    cfg.noPay,
     worker.logger,
   );
 

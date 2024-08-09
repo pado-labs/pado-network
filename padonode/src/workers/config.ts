@@ -108,10 +108,18 @@ export class EnvConfig {
 };
 
 export class WorkerConfig extends EnvConfig {
+  // @TODO the following variables have not written into .env
   avsName: string = "Node";
   nodeVersion: string = "v1.0.0";
+  logLevel: string = "info";
+  logFile: string = "worker.log";
+  noPay: boolean = false;
+
   constructor() {
     super();
+    // TODO: delete on production
+    this.logLevel = "debug";
+    this.noPay = true;
   }
 
 };
