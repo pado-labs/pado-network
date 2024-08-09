@@ -55,7 +55,7 @@ export class EnvConfig {
 
   constructor() {
     // Globals
-    this.nodeName = getOptValue(process.env.NODE_NAME, "");
+    this.nodeName = getOptValue(process.env.NODE_NAME, "EmptyName");
     this.nodeDescription = getOptValue(process.env.NODE_DESCRIPTION, "");
 
     // EigenLayer
@@ -108,7 +108,7 @@ export class EnvConfig {
 };
 
 export class WorkerConfig extends EnvConfig {
-  avsName: string = "PADO";
+  avsName: string = "Node";
   nodeVersion: string = "v1.0.0";
   constructor() {
     super();
