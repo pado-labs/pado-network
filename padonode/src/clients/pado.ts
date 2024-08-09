@@ -38,11 +38,15 @@ export class PadoClient {
   /////////////////////////////////////////////////////////////////////
   /// FEE
   /////////////////////////////////////////////////////////////////////
+  /**
+   * 
+   * @param tokenSymbol 
+   * @returns FeeTokenInfo
+   */
   async getFeeTokenBySymbol(
     tokenSymbol: string,
-  ): Promise<any | null> { // FeeTokenInfo
+  ): Promise<any | null> {
     const res = await this.feeMgt.getFeeTokenBySymbol(tokenSymbol);
-    // console.log('getFeeTokenBySymbol res', res);
     return res;
   }
 
@@ -52,8 +56,10 @@ export class PadoClient {
   async prepareRegistry(encryptionSchema: EncryptionSchema): Promise<any | null> {
     const tx = await this.dataMgt.prepareRegistry(encryptionSchema);
     const receipt = await tx.wait();
-    this.logger.debug(`prepareRegistry gasUsed: ${receipt.gasUsed}`);
-    this.logger.info(`prepareRegistry transactionHash: ${receipt.transactionHash}`);
+    this.logger.info({
+      transactionHash: receipt.transactionHash,
+      gasUsed: receipt.gasUsed,
+    }, 'data.prepareRegistry');
     const events = receipt.events;
     for (const event of events) {
       if (event.event === "DataPrepareRegistry") {
@@ -77,8 +83,10 @@ export class PadoClient {
       dataContent,
     );
     const receipt = await tx.wait();
-    this.logger.debug(`registerData gasUsed: ${receipt.gasUsed}`);
-    this.logger.info(`registerData transactionHash: ${receipt.transactionHash}`);
+    this.logger.info({
+      transactionHash: receipt.transactionHash,
+      gasUsed: receipt.gasUsed,
+    }, 'data.register');
     const events = receipt.events;
     for (const event of events) {
       if (event.event === "DataRegistered") {
@@ -88,12 +96,15 @@ export class PadoClient {
     return null;
   }
 
-
+  /**
+   * 
+   * @param dataId 
+   * @returns DataInfo
+   */
   async getDataById(
     dataId: string,
-  ): Promise<any | null> { // DataInfo
+  ): Promise<any | null> {
     const res = await this.dataMgt.getDataById(dataId);
-    // console.log('getDataById res', res);
     return res;
   }
 
@@ -109,8 +120,10 @@ export class PadoClient {
     const submitTaskIdentifier = 'submitTask(uint8,bytes,bytes32)';
     let tx = await this.taskMgt[submitTaskIdentifier](taskType, consumerPk, dataId, { value: feeAmount });
     const receipt = await tx.wait();
-    this.logger.debug(`submitTask gasUsed: ${receipt.gasUsed}`);
-    this.logger.info(`submitTask transactionHash: ${receipt.transactionHash}`);
+    this.logger.info({
+      transactionHash: receipt.transactionHash,
+      gasUsed: receipt.gasUsed,
+    }, 'task.submitTask');
     const events = receipt.events;
     for (const event of events) {
       if (event.event === "TaskDispatched") {
@@ -121,39 +134,59 @@ export class PadoClient {
     return null;
   }
 
+  /**
+   * 
+   * @returns Task[]
+   */
   async getPendingTasks(): Promise<any | null> {
     let res = await this.taskMgt.getPendingTasks();
-    // console.log('getPendingTasks res', res);
     return res;
   }
 
+  /**
+   * 
+   * @param workerId 
+   * @returns Task[]
+   */
   async getPendingTasksByWorkerId(workerId: string): Promise<any | null> {
     let res = await this.taskMgt.getPendingTasksByWorkerId(workerId);
-    // console.log('getPendingTasksByWorkerId res', res);
     return res;
   }
 
+  /**
+   * 
+   * @param taskId 
+   * @returns Task[]
+   */
   async getCompletedTaskById(taskId: string): Promise<any | null> {
     let res = await this.taskMgt.getCompletedTaskById(taskId);
-    // console.log('getCompletedTaskById res', res);
     return res;
   }
 
 
-  async reportResult(taskId: string, workerId: string, result: string): Promise<any | null> {
+  async reportResult(taskId: string, workerId: string, result: string, gasLimit: string): Promise<any | null> {
     try {
-      const tx = await this.taskMgt.reportResult(taskId, workerId, result);
+      const tx = await this.taskMgt.reportResult(taskId, workerId, result, { gasLimit: gasLimit });
       const receipt = await tx.wait();
-      this.logger.debug(`reportResult gasUsed: ${receipt.gasUsed}`);
-      this.logger.info(`reportResult transactionHash: ${receipt.transactionHash}`);
+      this.logger.info({
+        transactionHash: receipt.transactionHash,
+        gasUsed: receipt.gasUsed,
+      }, 'task.reportResult');
       const events = receipt.events;
       for (const event of events) {
         if (event.event === "ResultReported") {
           return event.args;
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log("reportResult error:\n", error, '\ntry callStatic');
+      if (error) {
+        if (error.error) {
+          if (error.error.message) {
+            console.error(`reportResult error: ${error.error.message}`);
+          }
+        }
+      }
       try {
         const tx = await this.taskMgt.callStatic.reportResult(taskId, workerId, result);
         console.log("reportResult.callStatic tx:\n", tx);
