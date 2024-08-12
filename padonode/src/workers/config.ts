@@ -112,7 +112,7 @@ export class WorkerConfig extends EnvConfig {
   avsName: string = "Node";
   nodeVersion: string = "v1.0.0";
   logLevel: string = "info";
-  logFile: string = "worker.log";
+  logFile: string = "./logs/worker.log";
   noPay: boolean = false;
 
   constructor() {
