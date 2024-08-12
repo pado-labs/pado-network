@@ -95,8 +95,8 @@ async function _getOperatorId(options: any) {
 async function _geneateLHEKey(options: any) {
   console.log('options', options);
   const keyPath = options.output;
-  const n = Number(options.n);
-  const t = Number(options.t);
+  const n = 3; // not used
+  const t = 2; // not used
   assert(n >= 3, "n >= 3");
   assert(t >= 1, "t >= 1");
   assert(n >= t, "n >= t");
@@ -196,8 +196,6 @@ async function main() {
   program.command('generate-lhe-key')
     .description('Generate LHE Keys.')
     .option('--output <FILEPATH>', 'JSON file path to store the keys', 'lhe.key.json')
-    .option('--n <TOTAL>', 'total number', '3')
-    .option('--t <THRESHOLD>', 'threshold number', '2')
     .action((options) => { _geneateLHEKey(options); });
 
   // AOs
