@@ -1,5 +1,14 @@
-import { readFileSync } from "node:fs";
+import * as fs from "node:fs";
 import { eth as Web3Eth } from "web3";
+
+export function isFileExist(filePath: string): boolean {
+  try {
+    fs.accessSync(filePath, fs.constants.F_OK);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
 
 export function getOptValue(optValue: string | undefined, defaultValue: string | number | boolean): any {
   if (optValue == undefined || optValue === "") {
@@ -11,12 +20,19 @@ export function getOptValue(optValue: string | undefined, defaultValue: string |
     return optValue === "true";
   }
 
+  // env string quoted in docker
+  if (optValue.startsWith("'") && optValue.endsWith("'")) {
+    optValue = optValue.slice(1, -1);
+  } else if (optValue.startsWith('"') && optValue.endsWith('"')) {
+    optValue = optValue.slice(1, -1);
+  }
+
   return optValue;
 };
 
 
 export async function getPrivateKey(walletpath: string, password: string): Promise<string> {
-  const jsonStr = readFileSync(walletpath).toString();
+  const jsonStr = fs.readFileSync(walletpath).toString();
   const keystoreJson = JSON.parse(jsonStr);
   if (!keystoreJson.address) {
     keystoreJson.id = "00000000-0000-0000-0000-000000000000";

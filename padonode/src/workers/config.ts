@@ -117,6 +117,14 @@ export class WorkerConfig extends EnvConfig {
 
   constructor() {
     super();
+    if (getOptValue(process.env.EXECUTION_FLAG, "") === "DOCKER") {
+      // reset the mapped path
+      this.ecdsaKeyFile = "/pado-network/keys/ecdsa_key.json";
+      this.blsKeyFile = "/pado-network/keys/bls_key.json";
+      this.lheKeyPath = "/pado-network/keys/lhe_key.json";
+      this.arWalletPath = "/pado-network/keys/ar_wallet.json";
+    }
+
     // TODO: delete on production
     this.logLevel = "debug";
     this.noPay = true;

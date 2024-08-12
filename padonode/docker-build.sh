@@ -8,4 +8,5 @@ npm install
 npm run build
 
 docker build -t padolabs/pado-network:latest . -f Dockerfile.build
+# docker build --progress=plain --no-cache -t padolabs/pado-network:latest . -f Dockerfile.build
 exit 0
