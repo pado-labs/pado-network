@@ -4,15 +4,17 @@ import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
 import { Metrics } from "../metrics/metrics";
 import { DoTaskParams, IWorker } from "./types";
-import { createWriteStream } from "node:fs";
+import { createWriteStream, mkdir } from "node:fs";
 import * as dotenv from "dotenv";
 import { stdout } from "node:process";
+import { dirname } from "node:path";
 dotenv.config();
 
 
 // @TODO remove this
 export function initAll_transport(): [WorkerConfig, Logger, NodeApi, Registry, Metrics] {
   const cfg = new WorkerConfig();
+  mkdir(dirname(cfg.logFile), { recursive: true }, (err) => { if (err) throw err; });
   const transport = pino.transport({
     targets: [{
       level: cfg.logLevel,
@@ -30,6 +32,7 @@ export function initAll_transport(): [WorkerConfig, Logger, NodeApi, Registry, M
 
 export function initAll(): [WorkerConfig, Logger, NodeApi, Registry, Metrics] {
   const cfg = new WorkerConfig();
+  mkdir(dirname(cfg.logFile), { recursive: true }, (err) => { if (err) throw err; });
   const streams = [
     { level: 'debug', stream: stdout },
     { level: 'info', stream: createWriteStream(cfg.logFile, { flags: 'a' }) },
