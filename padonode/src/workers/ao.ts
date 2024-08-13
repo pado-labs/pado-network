@@ -261,7 +261,8 @@ export async function newAOWorker(cfg: WorkerConfig, logger: Logger, nodeApi: No
   const lheKey = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
   worker.lheKey = lheKey;
 
-  if (cfg.dataStorageType == StorageType.ARSEEDING_AR || cfg.dataStorageType == StorageType.ARWEAVE) {
+  const dataStorageType = StorageType[cfg.dataStorageTypeEL as keyof typeof StorageType];
+  if (dataStorageType == StorageType.ARSEEDING_AR || dataStorageType == StorageType.ARWEAVE) {
     const wallet = JSON.parse(readFileSync(cfg.arWalletPath).toString());
     const signer = createDataItemSigner(wallet);
     worker.arWallet = wallet;
@@ -279,6 +280,7 @@ export async function newAOWorker(cfg: WorkerConfig, logger: Logger, nodeApi: No
 
   const _emptyEcdsaWallet = ethers.Wallet.createRandom();
   worker.storageClient = await buildStorageClient(
+    dataStorageType,
     _emptyEcdsaWallet,
     worker.arWallet,
     worker.arweave,

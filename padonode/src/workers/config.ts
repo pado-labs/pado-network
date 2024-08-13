@@ -1,4 +1,3 @@
-import { StorageType } from '../clients/storage';
 import { getOptValue } from '../utils';
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -46,7 +45,8 @@ export class EnvConfig {
   arweaveApiProtocol: string;
 
   // storage type: ARSEEDING_ETH, ARSEEDING_AR, ARWEAVE
-  dataStorageType: StorageType;
+  dataStorageTypeEL: string;
+  dataStorageTypeAO: string;
 
   // Enables
   enableEigenLayer: boolean;
@@ -98,8 +98,9 @@ export class EnvConfig {
     this.arweaveApiPort = getOptValue(process.env.ARWEAVE_API_CONFIG_PORT, 443);
     this.arweaveApiProtocol = getOptValue(process.env.ARWEAVE_API_CONFIG_PROTOCOL, "https");
 
-    const dataStorageType = getOptValue(process.env.DATA_STORAGE_TYPE, "ARSEEDING_ETH");
-    this.dataStorageType = StorageType[dataStorageType as keyof typeof StorageType];
+    // storage
+    this.dataStorageTypeEL = getOptValue(process.env.DATA_STORAGE_TYPE_EL, "ARSEEDING_ETH");
+    this.dataStorageTypeAO = getOptValue(process.env.DATA_STORAGE_TYPE_AO, "ARSEEDING_AR");
 
     // Enables
     this.enableEigenLayer = getOptValue(process.env.ENABLE_EIGEN_LAYER, false);

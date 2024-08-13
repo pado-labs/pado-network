@@ -66,7 +66,7 @@ export class EigenLayerWorker extends AbstractWorker {
       {
         // upload pk to arweave
         let pkData = Uint8Array.from(Buffer.from(this.lheKey.pk, 'hex'));
-        const pkTransactionId = await this.storageClient.submitData(this.cfg.dataStorageType, pkData);
+        const pkTransactionId = await this.storageClient.submitData(pkData);
         console.log('pkTransactionId ', pkTransactionId);
         const pkTransactionIdHex = ethers.utils.hexlify(stringToUint8Array(pkTransactionId));
         console.log('pkTransactionIdHex ', pkTransactionIdHex);
@@ -161,7 +161,7 @@ export class EigenLayerWorker extends AbstractWorker {
           dataContent: dataInfo.dataContent,
           dataTansactionId: dataTansactionId,
         }, 'dataInfo');
-        const enc_data = await this.storageClient.fetchData(this.cfg.dataStorageType, dataTansactionId);
+        const enc_data = await this.storageClient.fetchData(dataTansactionId);
         // console.log('enc_data ', enc_data);
 
         // re-encrypt if task.taskType is DataSharing
@@ -180,7 +180,7 @@ export class EigenLayerWorker extends AbstractWorker {
             consumerPkContent: task.consumerPk,
             consumerPkTransactionId: consumerPkTransactionId,
           }, 'consumerPk');
-          const pkData = await this.storageClient.fetchData(this.cfg.dataStorageType, consumerPkTransactionId);
+          const pkData = await this.storageClient.fetchData(consumerPkTransactionId);
           consumer_pk = Buffer.from(pkData).toString('hex');
         }
 
@@ -190,7 +190,7 @@ export class EigenLayerWorker extends AbstractWorker {
         // console.log("reencrypt reenc_sk=", reenc_sk);
 
         // update result to arweave
-        const resultTransactionId = await this.storageClient.submitData(this.cfg.dataStorageType, reenc_sk);
+        const resultTransactionId = await this.storageClient.submitData(reenc_sk);
         const resultContent = ethers.utils.hexlify(stringToUint8Array(resultTransactionId));
         this.logger.info({
           resultContent: resultContent,
@@ -252,7 +252,8 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
   const lheKey = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
   worker.lheKey = lheKey;
 
-  if (cfg.dataStorageType == StorageType.ARSEEDING_AR || cfg.dataStorageType == StorageType.ARWEAVE) {
+  const dataStorageType = StorageType[cfg.dataStorageTypeEL as keyof typeof StorageType];
+  if (dataStorageType == StorageType.ARSEEDING_AR || dataStorageType == StorageType.ARWEAVE) {
     const wallet = JSON.parse(readFileSync(cfg.arWalletPath).toString());
     const signer = createDataItemSigner(wallet);
     worker.arWallet = wallet;
@@ -267,6 +268,7 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
   }
 
   worker.storageClient = await buildStorageClient(
+    dataStorageType,
     worker.ecdsaWallet,
     worker.arWallet,
     worker.arweave,
