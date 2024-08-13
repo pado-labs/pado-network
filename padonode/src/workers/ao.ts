@@ -19,15 +19,23 @@ import { reencrypt } from "../crypto/lhe";
 import { readFileSync } from "node:fs";
 import { createDataItemSigner } from "@permaweb/aoconnect";
 
+import Arweave from "arweave";
+import { buildStorageClient, StorageClient, StorageType } from "../clients/storage";
+import { ethers } from "ethers";
 
 export class AOWorker extends AbstractWorker {
   aoClient!: AOClient;
-  signer!: any;
-  key!: any;
+  storageClient!: StorageClient;
+  lheKey!: any;
+  arWallet!: any;
+  arSigner!: any;
+  arweave!: any;
+  failedTasks: Map<string, number>;
 
   constructor(chainType: ChainType = ChainType.AO) {
     super();
     this.chainType = chainType;
+    this.failedTasks = new Map();
   }
 
   async register(params: RegisterParams): Promise<RegisterResult> {
@@ -37,7 +45,7 @@ export class AOWorker extends AbstractWorker {
     const desc = params.description;
     // @todo: params.taskTypeConfig??
     try {
-      const res = await this.aoClient.registerNode(name, this.key.pk, desc, this.signer);
+      const res = await this.aoClient.registerNode(name, this.lheKey.pk, desc, this.arSigner);
       console.log(`registerNode res=${res}`);
     } catch (e) {
       console.log("registerNode exception:", e);
@@ -51,7 +59,7 @@ export class AOWorker extends AbstractWorker {
 
     const name = params.name;
     try {
-      const res = await this.aoClient.deleteNode(name, this.signer);
+      const res = await this.aoClient.deleteNode(name, this.arSigner);
       console.log(`deleteNode res=${res}`);
     } catch (e) {
       console.log("deleteNode exception:", e);
@@ -67,7 +75,7 @@ export class AOWorker extends AbstractWorker {
     const desc = params.description;
     // @todo: params.taskTypeConfig??
     try {
-      const res = await this.aoClient.updateNode(name, desc, this.signer);
+      const res = await this.aoClient.updateNode(name, desc, this.arSigner);
       console.log(`updateNode res=${res}`);
     } catch (e) {
       console.log("updateNode exception:", e);
@@ -76,20 +84,19 @@ export class AOWorker extends AbstractWorker {
     return Promise.resolve({});
   }
 
-  async doTask(params: DoTaskParams): Promise<DoTaskResult> {
-    console.log('doTask params', params);
+  async doTask(_params: DoTaskParams): Promise<DoTaskResult> {
+    // console.log('doTask params', params);
 
     try {
       // @todo get the name outside
-      let name = await this._getNodeName(this.key.pk);
+      let name = await this._getNodeName(this.lheKey.pk);
       if (name == "") {
-        console.log('can not find name by pk');
         return {};
       }
 
-      await this._doTask(name, this.key.sk, this.signer);
+      await this._doTask(name, this.lheKey.sk, this.arSigner);
     } catch (e) {
-      console.log("doTaskLoop exception:", e);
+      console.log("doTask exception:", e);
     }
 
     return Promise.resolve({});
@@ -112,75 +119,101 @@ export class AOWorker extends AbstractWorker {
     let pendingTasksObj = Object();
     try {
       pendingTasksObj = JSON.parse(pendingTasks);
+      this.logger.info(`tasks.length: ${pendingTasksObj.length}`);
     } catch (e) {
       console.log("getPendingTasks JSON.parse(pendingTasks) exception:", e);
       return;
     }
+
     // console.log("doTask pendingTasks=", pendingTasks);
     for (var i in pendingTasksObj) {
-      console.log("doTask DateTime:", new Date());
+      // console.log("doTask DateTime:", new Date());
 
       var task = pendingTasksObj[i];
       // console.log("doTask task=", task);
 
       const taskId = task["id"];
-      console.log("doTask taskId=", taskId);
+      this.logger.info(`task.taskId: ${taskId}`);
 
-      var inputData = task["inputData"]
-      var inputDataObj = JSON.parse(inputData);
-      // console.log("doTask inputData=", inputData);
-
-      var dataId = inputDataObj["dataId"];
-      console.log("doTask inputData.dataId=", dataId);
-
-
-      const dataRes = await this.aoClient.getDataById(dataId);
-      let dataResObj = Object();
-      let exData = Object();
-      try {
-        dataResObj = JSON.parse(dataRes);
-        exData = JSON.parse(dataResObj.data);
-      } catch (e) {
-        console.log("getDataById JSON.parse(dataRes) exception:", e);
-        return;
-      }
-      let policy = exData.policy;
-      let indices = exData.policy.indices;
-      let names = exData.policy.names;
-      if (indices.length != names.length) {
-        console.log(`indices.length(${indices.length}) != names.length(${names.length})`);
-        return;
-      }
-
-      // console.log("doTask Data=", dataResObj);
       {
-        var encSksObj = exData["encSks"];
-        let encSk = "";
-        for (var k = 0; k < names.length; k++) {
-          if (names[k] == name) {
-            encSk = encSksObj[indices[k] - 1];
-            console.log(names[k], indices[k], name);
-            break;
+        // @TODO
+        const count = this.failedTasks.get(taskId);
+        if (count) {
+          this.logger.warn(`task.taskId: ${taskId} failed counts: ${count}`);
+          if (count > 10) {
+            continue;
           }
         }
+      }
 
-        if (encSk == "") {
-          console.log("can not found nodename:", name);
-          return;
+      try {
+        var inputData = task["inputData"]
+        var inputDataObj = JSON.parse(inputData);
+        // console.log("doTask inputData=", inputData);
+
+        var dataId = inputDataObj["dataId"];
+        this.logger.info(`task.dataId: ${dataId}`);
+
+        const dataRes = await this.aoClient.getDataById(dataId);
+        let dataResObj = Object();
+        let exData = Object();
+        try {
+          dataResObj = JSON.parse(dataRes);
+          exData = JSON.parse(dataResObj.data);
+        } catch (e) {
+          console.log("getDataById JSON.parse(dataRes) exception:", e);
+          throw e;
         }
+        let policy = exData.policy;
+        let indices = exData.policy.indices;
+        let names = exData.policy.names;
+        if (indices.length != names.length) {
+          console.log(`indices.length(${indices.length}) != names.length(${names.length})`);
+          throw 'invalid length of indices and names';
+        }
+        this.logger.info(policy, 'policy');
 
-        /// 2. do reencrypt
-        var threshold = { t: policy.t, n: policy.n, indices: policy.indices };
-        const enc_sk = encSk;
-        const node_sk = sk;
-        const consumer_pk = inputDataObj["consumerPk"];
-        const reencsksObj = reencrypt(enc_sk, node_sk, consumer_pk, threshold);
-        console.log("reencrypt res=", reencsksObj);
-        var reencsks = JSON.stringify(reencsksObj);
+        // console.log("doTask Data=", dataResObj);
+        {
+          var encSksObj = exData["encSks"];
+          let encSk = "";
+          for (var k = 0; k < names.length; k++) {
+            if (names[k] == name) {
+              encSk = encSksObj[indices[k] - 1];
+              break;
+            }
+          }
 
-        /// 3. submit result
-        const res = await this.aoClient.reportResult(taskId, name, reencsks, signer);
-        console.log("reportResult res=", res);
+          if (encSk == "") {
+            this.logger.warn("can not found nodename:", name);
+            throw 'can not found nodename';
+          }
+
+          /// 2. do reencrypt
+          var threshold = { t: policy.t, n: policy.n, indices: policy.indices };
+          const enc_sk = encSk;
+          const node_sk = sk;
+          const consumer_pk = inputDataObj["consumerPk"];
+          const reencsksObj = reencrypt(enc_sk, node_sk, consumer_pk, threshold);
+          if (reencsksObj && reencsksObj.reenc_sk) {
+            this.logger.info(`reencsksObj.reenc_sk.length: ${reencsksObj.reenc_sk.length}`);
+          }
+          var reencsks = JSON.stringify(reencsksObj);
+          // console.log("reencsks res=", typeof reencsks);
+          // console.log("signer res=", typeof signer);
+
+          /// 3. submit result
+          const res = await this.aoClient.reportResult(taskId, name, reencsks, signer);
+          console.log("reportResult res=", res);
+        }
+      } catch (error) {
+        console.log('task.taskId', taskId, 'with error', error)
+
+        if (!this.failedTasks.has(taskId)) {
+          this.failedTasks.set(taskId, 0);
+        }
+        const count = this.failedTasks.get(taskId) as number;
+        this.failedTasks.set(taskId, count + 1);
       }
     }
 
@@ -209,7 +242,7 @@ export class AOWorker extends AbstractWorker {
       }
     }
 
-    console.error("getNodeName cannot found node name by public key, please register node public key first.");
+    this.logger.error("getNodeName cannot found node name by public key, please register node public key first.");
     return "";
   }
 
@@ -225,13 +258,33 @@ export async function newAOWorker(cfg: WorkerConfig, logger: Logger, nodeApi: No
   // init something special
   worker.aoClient = await buildAOClient(cfg.aoDataRegistryProcessId, cfg.aoNodeRegistryProcessId, cfg.aoTasksProcessId, logger);
 
-  const wallet = JSON.parse(readFileSync(cfg.arWalletPath).toString());
-  const signer = createDataItemSigner(wallet);
-  worker.signer = signer;
+  const lheKey = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
+  worker.lheKey = lheKey;
 
-  const key = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
-  worker.key = key;
+  if (cfg.dataStorageType == StorageType.ARSEEDING_AR || cfg.dataStorageType == StorageType.ARWEAVE) {
+    const wallet = JSON.parse(readFileSync(cfg.arWalletPath).toString());
+    const signer = createDataItemSigner(wallet);
+    worker.arWallet = wallet;
+    worker.arSigner = signer;
 
+    const arweave = Arweave.init({
+      host: cfg.arweaveApiHost,
+      port: cfg.arweaveApiPort,
+      protocol: cfg.arweaveApiProtocol,
+    });
+    worker.arweave = arweave;
+  } else {
+    throw "unsupported!";
+  }
+
+  const _emptyEcdsaWallet = ethers.Wallet.createRandom();
+  worker.storageClient = await buildStorageClient(
+    _emptyEcdsaWallet,
+    worker.arWallet,
+    worker.arweave,
+    cfg.noPay,
+    worker.logger,
+  );
 
   worker.cfg = cfg;
   return worker;

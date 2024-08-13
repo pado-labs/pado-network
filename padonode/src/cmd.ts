@@ -200,18 +200,18 @@ async function main() {
 
   // AOs
   program.command('ao:register')
-    .description('Register.')
+    .description('AO Register.')
     .option('--name <NAME>', 'The name of the node. Default: env.NODE_NAME.')
     .option('--desc <DESCRIPTION>', 'The description of the node. Default: env.NODE_DESCRIPTION.')
     .option('--lhe-key <PATH>', 'Path to the LHE-key file. Default: env.LHE_KEY_PATH.')
     .action((options) => { _aoRegister(options); });
   program.command('ao:update')
-    .description('Update.')
+    .description('AO Update.')
     .option('--name <NAME>', 'The name of the node. Default: env.NODE_NAME.')
     .option('--desc <DESCRIPTION>', 'The description of the node. Default: env.NODE_DESCRIPTION.')
     .action((options) => { _aoUpdateNaode(options); });
   program.command('ao:deregister')
-    .description('Deregister.')
+    .description('AO Deregister.')
     .option('--name <NAME>', 'The name of the node. Default: env.NODE_NAME.')
     .action((options) => { _aoDeregister(options); });
 
