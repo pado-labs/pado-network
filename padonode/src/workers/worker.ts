@@ -30,6 +30,30 @@ export function initAll_transport(): [WorkerConfig, Logger, NodeApi, Registry, M
   return [cfg, logger, nodeApi, registry, metrics];
 };
 
+export function initLogger(logLevel: string, logFile: string): Logger {
+  mkdir(dirname(logFile), { recursive: true }, (err) => { if (err) throw err; });
+  const streams = [
+    { level: 'debug', stream: stdout },
+    { level: 'info', stream: createWriteStream(logFile, { flags: 'a' }) },
+  ];
+  const logger = pino({
+    base: { pid: undefined, hostname: undefined },
+    nestedKey: 'payload',
+    level: logLevel,
+    timestamp: pino.stdTimeFunctions.isoTime
+  }, pino.multistream(streams));
+
+  return logger;
+}
+
+export function initServices(cfg: WorkerConfig, logger: Logger): [NodeApi, Registry, Metrics] {
+  const nodeApi = new NodeApi(cfg.nodeName, cfg.nodeVersion);
+  const registry = new Registry();
+  const metrics = new Metrics(logger, registry);
+
+  return [nodeApi, registry, metrics];
+}
+
 export function initAll(): [WorkerConfig, Logger, NodeApi, Registry, Metrics] {
   const cfg = new WorkerConfig();
   mkdir(dirname(cfg.logFile), { recursive: true }, (err) => { if (err) throw err; });
