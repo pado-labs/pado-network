@@ -4,25 +4,25 @@ import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
 import { Metrics } from "../metrics/metrics";
 import { DoTaskParams, IWorker } from "./types";
-import { createWriteStream } from "node:fs";
+import { createWriteStream, mkdir } from "node:fs";
 import * as dotenv from "dotenv";
+import { stdout } from "node:process";
+import { dirname } from "node:path";
 dotenv.config();
 
 
 // @TODO remove this
 export function initAll_transport(): [WorkerConfig, Logger, NodeApi, Registry, Metrics] {
   const cfg = new WorkerConfig();
+  mkdir(dirname(cfg.logFile), { recursive: true }, (err) => { if (err) throw err; });
   const transport = pino.transport({
     targets: [{
-      level: "info",
+      level: cfg.logLevel,
       target: 'pino/file',
-      options: { destination: './worker.log', mkdir: true, append: true }
+      options: { destination: cfg.logFile, mkdir: true, append: true }
     }]
   })
   const logger = pino(transport);
-  logger.debug('test debug');
-  logger.info('test info');
-  logger.fatal('test fatal');
   const nodeApi = new NodeApi(cfg.nodeName, cfg.nodeVersion);
   const registry = new Registry();
   const metrics = new Metrics(logger, registry);
@@ -32,15 +32,15 @@ export function initAll_transport(): [WorkerConfig, Logger, NodeApi, Registry, M
 
 export function initAll(): [WorkerConfig, Logger, NodeApi, Registry, Metrics] {
   const cfg = new WorkerConfig();
+  mkdir(dirname(cfg.logFile), { recursive: true }, (err) => { if (err) throw err; });
   const streams = [
-    { level: 'debug', stream: createWriteStream('worker.debug.log', { flags: 'a' }) },
-    { level: 'info', stream: createWriteStream('worker.info.log', { flags: 'a' }) },
-    { level: 'fatal', stream: createWriteStream('worker.fatal.log', { flags: 'a' }) },
+    { level: 'debug', stream: stdout },
+    { level: 'info', stream: createWriteStream(cfg.logFile, { flags: 'a' }) },
   ];
   const logger = pino({
     base: { pid: undefined, hostname: undefined },
     nestedKey: 'payload',
-    level: 'debug',
+    level: cfg.logLevel,
     timestamp: pino.stdTimeFunctions.isoTime
   }, pino.multistream(streams));
   const nodeApi = new NodeApi(cfg.nodeName, cfg.nodeVersion);

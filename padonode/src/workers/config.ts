@@ -108,10 +108,26 @@ export class EnvConfig {
 };
 
 export class WorkerConfig extends EnvConfig {
+  // @TODO the following variables have not written into .env
   avsName: string = "Node";
   nodeVersion: string = "v1.0.0";
+  logLevel: string = "info";
+  logFile: string = "./logs/worker.log";
+  noPay: boolean = false;
+
   constructor() {
     super();
+    if (getOptValue(process.env.EXECUTION_FLAG, "") === "DOCKER") {
+      // reset the mapped path
+      this.ecdsaKeyFile = "/pado-network/keys/ecdsa_key.json";
+      this.blsKeyFile = "/pado-network/keys/bls_key.json";
+      this.lheKeyPath = "/pado-network/keys/lhe_key.json";
+      this.arWalletPath = "/pado-network/keys/ar_wallet.json";
+    }
+
+    // TODO: delete on production
+    this.logLevel = "debug";
+    this.noPay = true;
   }
 
 };

@@ -1,0 +1,9 @@
+FROM node:20.12.2
+LABEL maintainer="PADO Labs <dev@padolabs.org>"
+WORKDIR /pado-network
+ENV EXECUTION_FLAG=DOCKER
+
+COPY ./package.json /pado-network/package.json
+COPY ./dist/ /pado-network/dist
+COPY ./node_modules/ /pado-network/node_modules
+# RUN npm install
