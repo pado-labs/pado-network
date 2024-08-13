@@ -2,6 +2,7 @@
   - [Building](#building)
   - [Register as Operator on EigenLayer](#register-as-operator-on-eigenlayer)
   - [Configurations](#configurations)
+    - [Node Info](#node-info)
     - [ECDSA and BLS Key](#ecdsa-and-bls-key)
     - [LHE Key](#lhe-key)
   - [Storage](#storage)
@@ -53,6 +54,16 @@ For the Ethernet Testnet(Holesky), copy `./config-files/.env.holesky` into `./.e
 
 
 <br/>
+
+### Node Info
+
+Set a name to identify yourself, these will be used on the node itself and will be shown on performance metrics in the future.
+
+```conf
+# Set a name to identify yourself
+NODE_NAME="Your Node Name"
+NODE_DESCRIPTION="Your Node Name's Description"
+```
 
 ### ECDSA and BLS Key
 
