@@ -247,7 +247,7 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
   const clients = await buildAll(config); // todo, no need build all clients
   worker.clients = clients;
 
-  worker.padoClient = await buildPadoClient(ecdsaWallet, cfg.dataMgtAddress, cfg.taskMgtAddress, cfg.workerMgtAddress, logger);
+  worker.padoClient = await buildPadoClient(ecdsaWallet, cfg.routerAddress, cfg.dataMgtAddress, cfg.taskMgtAddress, cfg.workerMgtAddress, logger);
 
   const lheKey = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
   worker.lheKey = lheKey;

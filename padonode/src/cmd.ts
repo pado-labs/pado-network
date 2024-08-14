@@ -94,6 +94,15 @@ async function _getOperatorId(options: any) {
   }
 }
 
+async function _elAddToWhiteList(options: any) {
+  const [_, worker] = await _getWorker(options);
+
+  {
+    if (!options.operator) { options.operator = worker.ecdsaWallet.address; }
+    await worker.padoClient.addWhiteListItem(options.operator);
+  }
+}
+
 async function _geneateLHEKey(options: any) {
   console.log('options', options);
   const keyName = options.keyName;
@@ -224,6 +233,11 @@ async function main() {
     .description('Get the Operator Id.')
     .option('--operator <ADDRESS>', 'the operator address')
     .action((options) => { _getOperatorId(options); });
+
+  program.command('el:add-to-white-list')
+    .description('Add worker to white list.(only WorkerMgt contract owner)')
+    .option('--operator <ADDRESS>', 'the operator address')
+    .action((options) => { _elAddToWhiteList(options); });
 
   program.command('register:avs')
     .description('Register to AVS.')

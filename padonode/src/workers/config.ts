@@ -31,6 +31,7 @@ export class EnvConfig {
   dataMgtAddress: string;
   taskMgtAddress: string;
   workerMgtAddress: string;
+  routerAddress: string;
 
   // AO
   lheKeyPath: string;
@@ -85,6 +86,7 @@ export class EnvConfig {
     this.dataMgtAddress = getOptValue(process.env.DATA_MANAGEMENT_ADDRESS, "");
     this.taskMgtAddress = getOptValue(process.env.TASK_MANAGEMENT_ADDRESS, "");
     this.workerMgtAddress = getOptValue(process.env.WORKER_MANAGEMENT_ADDRESS, "");
+    this.routerAddress = getOptValue(process.env.ROUTER_ADDRESS, "");
 
     // AO
     this.lheKeyPath = getOptValue(process.env.LHE_KEY_PATH, "");
