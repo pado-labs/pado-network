@@ -61,7 +61,7 @@ LHE_KEY_PATH='/path/to/your/lhe.key.json'
 
 Storing data on a contract is expensive, so we use [arweave](https://www.arweave.org/) which is cheaper to store data.
 
-In order to use [Arseeding](https://web3infra.dev/docs/arseeding/introduction/lightNode), you need to first transfer some ETH to [everPay](https://app.everpay.io/), which wallet corresponds to the ecdsa key previously mentioned above.
+In order to use [Arseeding](https://web3infra.dev/docs/arseeding/introduction/lightNode), you need to first transfer some AR to [everPay](https://app.everpay.io/), which wallet corresponds to the ArWallet previously mentioned above.
 
 
 ## Registry
