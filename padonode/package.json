@@ -16,7 +16,7 @@
     "ao:update": "node dist/cmd.js ao:update",
     "ao:deregister": "node dist/cmd.js ao:deregister",
     "_task_part": "",
-    "task": "node dist/main.js --name",
+    "task": "node dist/main.js",
     "_test_part": "",
     "test": "node --test ./src"
   },

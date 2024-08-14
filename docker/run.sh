@@ -74,7 +74,7 @@ function run_task() {
     --restart unless-stopped \
     --name pado-network${_name} \
     ${pado_net_worker_image} \
-    node ./dist/main.js --name "${NODE_NAME}"
+    node ./dist/main.js
 }
 
 cmd=$1

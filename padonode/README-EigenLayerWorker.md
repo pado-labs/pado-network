@@ -10,7 +10,6 @@
     - [Register to PADO AVS](#register-to-pado-avs)
     - [Get Operator ID](#get-operator-id)
   - [Run Task](#run-task)
-  - [Other Variables](#other-variables)
 
 
 # EigenLayer Worker
@@ -127,6 +126,9 @@ node ./dist/cmd.js el:register-as-operator
 
 ### Register to PADO AVS
 
+**NOTE:** *Please contact [PADO Labs](https://discord.gg/YxJftNRxhh) to add your wallet address to the WHITELIST before being able to successfully register!*
+
+
 The relevant parameters and default values.
 
 ```conf
@@ -169,11 +171,7 @@ Once successfully registered, you can start the task program. If necessary, e.g.
 
 
 ```sh
-node ./dist/main.js [--name <NAME>]
+node ./dist/main.js
 # If you want to start it as a background process:
 # nohup node ./dist/main.js >logfile &
 ```
-
-## Other Variables
-
-

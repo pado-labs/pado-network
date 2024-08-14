@@ -9,7 +9,6 @@ import { program } from "commander";
 import { WorkerConfig } from "./workers/config";
 
 program
-  .requiredOption('--name <NAME>', 'special a name.', 'nodeX')
   .option('--lhe-key <PATH>', 'Path to the LHE-key file. Default: env.LHE_KEY_PATH.')
 
 program.parse();
