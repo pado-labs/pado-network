@@ -20,20 +20,20 @@ async function main() {
   const cfg = new WorkerConfig();
   if (options.lheKey) { cfg.lheKeyPath = options.lheKey; }
 
-  const logger_services = initLogger("info", "./logs/services.log");
+  const logger_services = await initLogger("info", "./logs/services.log");
   const [nodeApi, registry, _] = initServices(cfg, logger_services);
 
   let workers = [];
 
   try {
     if (cfg.enableEigenLayer) {
-      const logger = initLogger("info", "./logs/worker.el.log");
+      const logger = await initLogger("info", "./logs/worker.el.log");
       const elWorker = await newEigenLayerWorker(cfg, logger, nodeApi, registry);
       workers.push(elWorker);
     }
 
     if (cfg.enableAO) {
-      const logger = initLogger("info", "./logs/worker.ao.log");
+      const logger = await initLogger("info", "./logs/worker.ao.log");
       const aoWorker = await newAOWorker(cfg, logger, nodeApi, registry);
       workers.push(aoWorker);
     }

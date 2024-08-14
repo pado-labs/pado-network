@@ -30,8 +30,8 @@ export function initAll_transport(): [WorkerConfig, Logger, NodeApi, Registry, M
   return [cfg, logger, nodeApi, registry, metrics];
 };
 
-export function initLogger(logLevel: string, logFile: string): Logger {
-  mkdir(dirname(logFile), { recursive: true }, (err) => { if (err) throw err; });
+export async function initLogger(logLevel: string, logFile: string): Promise<Logger> {
+  await mkdir(dirname(logFile), { recursive: true }, (err) => { if (err) throw err; });
   const streams = [
     { level: 'debug', stream: stdout },
     { level: 'info', stream: createWriteStream(logFile, { flags: 'a' }) },

@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { writeFileSync, mkdir } from "node:fs";
 import { ethers } from "ethers";
 import { newEigenLayerWorker } from "./workers/eigenlayer";
 import { initAll } from "./workers/worker";
@@ -6,7 +6,7 @@ import { WorkerConfig } from "./workers/config";
 import { getPrivateKey } from "./utils";
 import { generateKey } from "./crypto/lhe";
 import { newAOWorker } from "./workers/ao";
-
+import { dirname } from "node:path";
 import { Command } from "commander";
 import { assert } from "node:console";
 import { DeregisterParams, RegisterParams, UpdateParams } from "./workers/types";
@@ -17,6 +17,8 @@ async function _getWorker(options: any): Promise<[WorkerConfig, any]> {
 
   const [cfg, logger, nodeApi, registry, _] = initAll();
   const worker = await newEigenLayerWorker(cfg, logger, nodeApi, registry);
+
+  // @TODO if enableXXX
 
   return [worker.cfg, worker];
 }
@@ -94,7 +96,7 @@ async function _getOperatorId(options: any) {
 
 async function _geneateLHEKey(options: any) {
   console.log('options', options);
-  const keyPath = options.output;
+  const keyName = options.keyName;
   const n = 3; // not used
   const t = 2; // not used
   assert(n >= 3, "n >= 3");
@@ -102,9 +104,11 @@ async function _geneateLHEKey(options: any) {
   assert(n >= t, "n >= t");
 
   {
+    const keyPath = `./keys/${keyName}.lhe.key.json`;
+    await mkdir(dirname(keyPath), { recursive: true }, (err) => { if (err) throw err; });
     const key = await generateKey({ n: n, t: t });
     writeFileSync(keyPath, JSON.stringify(key));
-    console.log(`The key has been stored into ${keyPath}.`);
+    console.log(`The key has been stored into '${keyPath}'.`);
   }
 }
 
@@ -165,38 +169,18 @@ async function _aoDeregister(options: any) {
   console.log('res', res);
 }
 
+//@ts-ignore
 async function _empty(options: any) {
-  console.log('options', options);
 }
 
 
 async function main() {
-  program.command('register-as-operator')
-    .description('Register as Operator on EigenLayer')
-    .requiredOption('--chain <NAME>', 'blockchain(unsupported now)', 'holesky')
-    .action((options) => { _registerAsOperator(options); });
-
-  program.command('register:avs')
-    .description('Register to AVS.')
-    .requiredOption('--chain <NAME>', 'blockchain(unsupported now)', 'holesky')
-    .requiredOption('--quorum-id-list <ID>', 'quorum number, split by comma. e.g.: 0/1/0,1')
-    .action((options) => { _registerOperatorInQuorumWithAVSRegistryCoordinator(options); });
-
-  program.command('register:pado-avs')
-    .description('Register to PADO AVS.')
-    .requiredOption('--chain <NAME>', 'blockchain(unsupported now)', 'holesky')
-    .requiredOption('--quorum-id-list <ID>', 'quorum number, split by comma. e.g.: 0/1/0,1')
-    .action((options) => { _registerOperatorInQuorumWithAVSWorkerManager(options); });
-
-  program.command('get-operator-id')
-    .description('Get the Operator Id.')
-    .option('--operator <ADDRESS>', 'the operator address')
-    .action((options) => { _getOperatorId(options); });
-
+  // Keys
   program.command('generate-lhe-key')
     .description('Generate LHE Keys.')
-    .option('--output <FILEPATH>', 'JSON file path to store the keys', 'lhe.key.json')
+    .requiredOption('--key-name <NAME>', 'Name of the key. Default output to ./keys/[NAME].lhe.key.json', 'default')
     .action((options) => { _geneateLHEKey(options); });
+
 
   // AOs
   program.command('ao:register')
@@ -216,9 +200,36 @@ async function main() {
     .action((options) => { _aoDeregister(options); });
 
 
-  program.command('empty')
-    .description('Empty.')
+  // EigenLayer
+  program.command('el:register')
+    .description('Register to PADO AVS.')
+    .requiredOption('--quorum-id-list <ID>', 'quorum number, split by comma. e.g.: 0/1/0,1', '0')
+    .action((options) => { _registerOperatorInQuorumWithAVSWorkerManager(options); });
+
+  program.command('el:update')
+    .description('(UNSUPPORTED).')
     .action((options) => { _empty(options); });
+
+  program.command('el:deregister')
+    .description('(UNSUPPORTED).')
+    .action((options) => { _empty(options); });
+
+
+  // EigenLayer (Extends)
+  program.command('el:register-as-operator')
+    .description('Register as Operator on EigenLayer')
+    .action((options) => { _registerAsOperator(options); });
+
+  program.command('el:get-operator-id')
+    .description('Get the Operator Id.')
+    .option('--operator <ADDRESS>', 'the operator address')
+    .action((options) => { _getOperatorId(options); });
+
+  program.command('register:avs')
+    .description('Register to AVS.')
+    .requiredOption('--quorum-id-list <ID>', 'quorum number, split by comma. e.g.: 0/1/0,1')
+    .action((options) => { _registerOperatorInQuorumWithAVSRegistryCoordinator(options); });
+
 
   await program.parseAsync(process.argv);
 }
