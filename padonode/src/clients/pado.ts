@@ -7,6 +7,7 @@ import { feeMgtABI } from "../abis/feeMgtABI";
 import { dataMgtABI } from "../abis/dataMgtABI";
 import { taskMgtABI } from "../abis/taskMgtABI";
 import { workerMgtABI } from "../abis/workerMgtABI";
+import { routerABI } from "../abis/routerABI";
 
 interface EncryptionSchema {
   t: number;
@@ -54,17 +55,23 @@ export class PadoClient {
   /// DATA
   /////////////////////////////////////////////////////////////////////
   async prepareRegistry(encryptionSchema: EncryptionSchema): Promise<any | null> {
-    const tx = await this.dataMgt.prepareRegistry(encryptionSchema);
-    const receipt = await tx.wait();
-    this.logger.info({
-      transactionHash: receipt.transactionHash,
-      gasUsed: receipt.gasUsed,
-    }, 'data.prepareRegistry');
-    const events = receipt.events;
-    for (const event of events) {
-      if (event.event === "DataPrepareRegistry") {
-        return event.args;
+    try {
+      const tx = await this.dataMgt.prepareRegistry(encryptionSchema);
+      const receipt = await tx.wait();
+      this.logger.info({
+        transactionHash: receipt.transactionHash,
+        gasUsed: receipt.gasUsed,
+      }, 'data.prepareRegistry');
+      const events = receipt.events;
+      for (const event of events) {
+        if (event.event === "DataPrepareRegistry") {
+          return event.args;
+        }
       }
+    } catch (error) {
+      console.log('prepareRegistry error', error);
+      const tx = await this.dataMgt.callStatic.prepareRegistry(encryptionSchema);
+      console.log('prepareRegistry.callStatic tx', tx);
     }
 
     return null;
@@ -206,23 +213,31 @@ export class PadoClient {
     console.log('addWhiteListItem res', res);
     return res;
   }
-
 };
 
-
+//@ts-ignore
 export async function buildPadoClient(
   ecdsaWallet: ethers.Wallet,
-  dataMgtAddress: string,
-  taskMgtAddress: string,
-  workerMgtAddress: string,
+  routerAddress: string,
+  _dataMgtAddress: string,
+  _taskMgtAddress: string,
+  _workerMgtAddress: string,
   logger: Logger,
 ): Promise<PadoClient> {
+  const router = new ethers.Contract(routerAddress, routerABI, ecdsaWallet);
+  const feeMgtAddress: string = await router.getFeeMgt();
+  const dataMgtAddress: string = await router.getDataMgt();
+  const taskMgtAddress: string = await router.getTaskMgt();
+  const workerMgtAddress: string = await router.getWorkerMgt();
+  // console.log('buildPadoClient    feeMgtAddress', feeMgtAddress);
+  // console.log('buildPadoClient   dataMgtAddress', dataMgtAddress);
+  // console.log('buildPadoClient   taskMgtAddress', taskMgtAddress);
+  // console.log('buildPadoClient workerMgtAddress', workerMgtAddress);
+
+  const feeMgt = new ethers.Contract(feeMgtAddress, feeMgtABI, ecdsaWallet);
   const dataMgt = new ethers.Contract(dataMgtAddress, dataMgtABI, ecdsaWallet);
   const taskMgt = new ethers.Contract(taskMgtAddress, taskMgtABI, ecdsaWallet);
   const workerMgt = new ethers.Contract(workerMgtAddress, workerMgtABI, ecdsaWallet);
-
-  const feeMgtAddress: string = await taskMgt.feeMgt();
-  const feeMgt = new ethers.Contract(feeMgtAddress, feeMgtABI, ecdsaWallet);
 
   const padoClient = new PadoClient(
     ecdsaWallet,

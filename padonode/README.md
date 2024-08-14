@@ -2,6 +2,7 @@
   - [Building](#building)
   - [Register as Operator on EigenLayer](#register-as-operator-on-eigenlayer)
   - [Configurations](#configurations)
+    - [Node Info](#node-info)
     - [ECDSA and BLS Key](#ecdsa-and-bls-key)
     - [LHE Key](#lhe-key)
   - [Storage](#storage)
@@ -54,6 +55,16 @@ For the Ethernet Testnet(Holesky), copy `./config-files/.env.holesky` into `./.e
 
 <br/>
 
+### Node Info
+
+Set a name to identify yourself, these will be used on the node itself and will be shown on performance metrics in the future.
+
+```conf
+# Set a name to identify yourself
+NODE_NAME="Your Node Name"
+NODE_DESCRIPTION="Your Node Name's Description"
+```
+
 ### ECDSA and BLS Key
 
 Fill in the file path and password of the ECDSA and BLS key you have generated according to [here](#register-as-operator-on-eigenlayer).
@@ -75,10 +86,10 @@ BLS_KEY_PASSWORD=''
 The LHE key is used for data sharing, use the following command to generate it.
 
 ```sh
-npm run generate-lhe-key [-- --output <FILEPATH>]
+node ./dist/cmd.js generate-lhe-key [--key-name <NAME>]
 ```
 
-The default generation is to `./lhe.key.json`, you can specify the output file via `--output  <FILEPATH>`.
+The default output is `./keys/default.lhe.key.json`, you can specify the key name via `--key-name <NAME>`.
 
 
 Next, fill in the file path of the LHE key you have generated.
@@ -125,7 +136,7 @@ METADATA_URI=
 Once the configuration is complete, you can run:
 
 ```sh
-npm run register:as-operator
+node ./dist/cmd.js el:register-as-operator
 ```
 
 ### Register to PADO AVS
@@ -145,9 +156,9 @@ OPERATOR_SOCKET_IP_PORT=
 
 ```sh
 # special a quorum id or quorum id list split by comma. e.g.:
-# npm run register:pado-avs 0
-# npm run register:pado-avs 0,1
-npm run register:pado-avs <quorum-id-List>
+# node ./dist/cmd.js el:register 0
+# node ./dist/cmd.js el:register 0,1
+node ./dist/cmd.js el:register [--quorum-id-list <ID>]
 ```
 
 **NOTE**: PADO AVS now only supports quorum ids of `0`.
@@ -162,7 +173,7 @@ In general, you only need to perform the registry steps once.
 Once you have successfully registered to avs, you can get the operator id by:
 
 ```sh
-npm run get-operator-id
+node ./dist/cmd.js el:get-operator-id
 ```
 
 
@@ -172,9 +183,9 @@ Once successfully registered, you can start the task program. If necessary, e.g.
 
 
 ```sh
-npm run task <NAME>
+node ./dist/main.js [--name <NAME>]
 # If you want to start it as a background process:
-# nohup npm run task <NAME> >logfile &
+# nohup node ./dist/main.js >logfile &
 ```
 
 ## Other Variables

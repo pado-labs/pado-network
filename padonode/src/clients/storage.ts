@@ -20,6 +20,8 @@ export enum StorageType {
 export class StorageClient {
   constructor(
     // @ts-ignore
+    private readonly storageType: StorageType,
+    // @ts-ignore
     private readonly ecdsaWallet: ethers.Wallet,
     // @ts-ignore
     private readonly arWallet: any,
@@ -34,15 +36,14 @@ export class StorageClient {
 
   /**
    * submit data to ar and return transaction id
-   * @param storageType 
    * @param arweave 
    * @param data 
    * @param arWallet 
    * @returns 
    */
-  async submitData(storageType: StorageType, data: Uint8Array): Promise<string> {
+  async submitData(data: Uint8Array): Promise<string> {
     let transactionId;
-    switch (storageType) {
+    switch (this.storageType) {
       case StorageType.ARSEEDING_ETH:
         transactionId = await submitDataToArseedingMetamask(data, this.ecdsaWallet.privateKey, 'ethereum-eth', this.noPay);
         break;
@@ -58,14 +59,13 @@ export class StorageClient {
 
   /**
    * Fetch data from ar and return data
-   * @param storageType 
    * @param arweave 
    * @param transactionId 
    * @returns 
    */
-  async fetchData(storageType: StorageType, transactionId: string): Promise<Uint8Array> {
+  async fetchData(transactionId: string): Promise<Uint8Array> {
     let data;
-    switch (storageType) {
+    switch (this.storageType) {
       case StorageType.ARSEEDING_ETH:
       case StorageType.ARSEEDING_AR:
         data = await getDataFromArseeding(transactionId);
@@ -80,6 +80,7 @@ export class StorageClient {
 }
 
 export async function buildStorageClient(
+  storageType: StorageType,
   ecdsaWallet: ethers.Wallet,
   arWallet: any,
   arweave: Arweave,
@@ -87,6 +88,7 @@ export async function buildStorageClient(
   logger: Logger,
 ): Promise<StorageClient> {
   const storageClient = new StorageClient(
+    storageType,
     ecdsaWallet,
     arWallet,
     arweave,
