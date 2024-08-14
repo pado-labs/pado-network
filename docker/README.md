@@ -4,9 +4,9 @@
   - [Guides](#guides)
   - [A brief summary of command lines](#a-brief-summary-of-command-lines)
     - [LHE Key](#lhe-key)
-    - [EigenLayer](#eigenlayer)
-    - [AO](#ao)
-    - [Task](#task)
+    - [EigenLayer Worker](#eigenlayer-worker)
+    - [AO Worker](#ao-worker)
+    - [Task for all workers](#task-for-all-workers)
 
 
 # pado-node
@@ -40,7 +40,7 @@ docker pull padolabs/pado-network:latest
 bash ./run.sh generate-lhe-key
 ```
 
-### EigenLayer
+### EigenLayer Worker
 
 ```sh
 bash ./run.sh el:register-as-operator
@@ -48,16 +48,13 @@ bash ./run.sh el:register
 bash ./run.sh el:get-operator-id
 ```
 
-### AO
+### AO Worker
 
 ```sh
 bash ./run.sh ao:register
-bash ./run.sh ao:update
-bash ./run.sh ao:deregister
 ```
 
-
-### Task
+### Task for all workers
 
 ```sh
 bash ./run.sh dotask [<name>]
@@ -73,7 +70,7 @@ docker logs -f pado-network[-name]
 ```
 
 
-others:
+others: (todo)
 
 ```sh
 docker compose -f docker-compose.yaml up -d
