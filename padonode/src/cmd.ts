@@ -10,6 +10,7 @@ import { dirname } from "node:path";
 import { Command } from "commander";
 import { assert } from "node:console";
 import { DeregisterParams, RegisterParams, UpdateParams } from "./workers/types";
+import { everPayBalance } from "./misc/everpay";
 const program = new Command();
 
 async function _getWorker(options: any): Promise<[WorkerConfig, any]> {
@@ -245,6 +246,15 @@ async function main() {
     .action((options) => { _registerOperatorInQuorumWithAVSRegistryCoordinator(options); });
 
 
+  // Misc/Tool/Util
+  program.command('everpay:balance')
+    .description('EverPay balance')
+    .requiredOption('--account <ADDRESS>', 'Account address.')
+    .option('--symbol <SYMBOL>', 'Token symbol, such as ETH, AR, etc.')
+    .action((options) => {
+      everPayBalance(options.account, options.symbol);
+    });
+    
   await program.parseAsync(process.argv);
 }
 main()
