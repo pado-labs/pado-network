@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { newEigenLayerWorker } from "./workers/eigenlayer";
 import { initAll } from "./workers/worker";
 import { WorkerConfig } from "./workers/config";
-import { getPrivateKey } from "./utils";
+import { getOptValue, getPrivateKey } from "./utils";
 import { generateKey } from "./crypto/lhe";
 import { newAOWorker } from "./workers/ao";
 import { dirname } from "node:path";
@@ -260,10 +260,12 @@ async function main() {
     .requiredOption('--chain <TOKEN>', 'Chain type. Now only supported ethereum,arweave.')
     .requiredOption('--symbol <SYMBOL>', 'Token symbol, such as ETH.')
     .requiredOption('--amount <AMOUNT>', 'Amount of assets to be deposit')
-    .requiredOption('--walletpath <PATH>', 'The wallet path')
-    .option('--password <PASSWORD>', 'Password for ethereum wallet')
+    .option('--walletpath <PATH>', 'The wallet path. You should export WALLET_PATH=/path/to/your/wallet.json on docker.')
     .action((options) => {
-      everPayDeposit(options.chain, options.symbol, options.amount, options.walletpath, options.password);
+      if (getOptValue(process.env.EXECUTION_FLAG, "") === "DOCKER") {
+        options.walletpath = "/pado-network/keys/wallet.json";
+      }
+      everPayDeposit(options.chain, options.symbol, options.amount, options.walletpath);
     });
 
   await program.parseAsync(process.argv);

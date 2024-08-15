@@ -1,9 +1,10 @@
 import Everpay from 'everpay'
 import Arweave from 'arweave';
 import { newEverpayByEcc, newEverpayByRSA } from 'arseeding-js/cjs/payOrder';
-import { readFileSync } from "node:fs"
+import { readFileSync } from "node:fs";
 import { getPrivateKey } from '../utils';
-import "../proxy.js"
+import "../proxy.js";
+const readlineSync = require('readline-sync');
 
 /**
  * 
@@ -82,10 +83,9 @@ async function getEverPayArweave(walletpath: string): Promise<Everpay> {
  * @param symbol 
  * @param amount 
  * @param walletpath 
- * @param password 
  * @returns 
  */
-export async function everPayDeposit(chainType: string, symbol: string, amount: string, walletpath: string, password?: string) {
+export async function everPayDeposit(chainType: string, symbol: string, amount: string, walletpath: string) {
   if (chainType == "arweave") chainType = "arweave,ethereum";
   console.log(`Deposit to the everPay. chainType: ${chainType} symbol: ${symbol} amount: ${amount} walletpath: ${walletpath}.`);
   let tag = "";
@@ -115,10 +115,9 @@ export async function everPayDeposit(chainType: string, symbol: string, amount: 
 
   let everpay: Everpay;
   if (chainType === "ethereum") {
-    if (!password) {
-      console.log("pass a password by '--password <PASSWORD>'");
-      return;
-    }
+    var password = readlineSync.question('ENTER YOUR WALLET PASSWORD: ', {
+      hideEchoBack: true
+    });
     everpay = await getEverPayEthereum(walletpath, password);
   } else if (chainType === "arweave,ethereum") {
     everpay = await getEverPayArweave(walletpath);

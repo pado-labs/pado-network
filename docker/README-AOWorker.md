@@ -63,6 +63,23 @@ Storing data on a contract is expensive, so we use [arweave](https://www.arweave
 
 In order to use [Arseeding](https://web3infra.dev/docs/arseeding/introduction/lightNode), you need to first transfer some AR to [everPay](https://app.everpay.io/), which wallet corresponds to the ArWallet previously mentioned above.
 
+Alternatively, you can deposit on EverPay with the following command:
+
+```sh
+# here set your own wallet path
+export WALLET_PATH=/path/to/your/wallet.json
+# here set your own AMOUNT
+bash ./utils.sh everpay:deposit --chain arweave --symbol AR --amount <AMOUNT>
+# e.g.:
+# bash ./utils.sh everpay:deposit --chain arweave --symbol AR --amount 0.00001
+```
+
+Meanwhile, you can check the balance on EverPay by:
+
+```sh
+bash ./utils.sh everpay:balance --account <ACCOUNT_ADDRESS> --symbol AR
+```
+
 
 ## Registry
 
