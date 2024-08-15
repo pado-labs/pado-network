@@ -130,7 +130,8 @@ export class WorkerConfig extends EnvConfig {
 
     // TODO: delete on production
     this.logLevel = "debug";
-    this.noPay = true;
+    this.noPay = !getOptValue(process.env.PAY_FOR_ARSEEDING, false);
+
   }
 
 };

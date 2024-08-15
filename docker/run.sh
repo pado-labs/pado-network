@@ -64,6 +64,19 @@ function general_cmd() {
     ${CMD} $@
 }
 
+function run_task() {
+  _name=
+  if [ $# -ge 1 ]; then
+    _name="-$1"
+  fi
+  docker run -d --env-file .env ${mapped_keys} \
+    -v ./logs:/pado-network/logs/ \
+    --restart unless-stopped \
+    --name pado-network${_name} \
+    ${pado_net_worker_image} \
+    node ./dist/main.js
+}
+
 cmd=$1
 if [ "${cmd}" = "-h" ] || [ "${cmd}" = "--help" ]; then
   usage ${cmd}
@@ -85,6 +98,12 @@ elif [ "${cmd}" = "ao:update" ]; then
   general_cmd $@
 elif [ "${cmd}" = "ao:deregister" ]; then
   general_cmd $@
+#
+# Task
+elif [ "${cmd}" = "dotask" ]; then
+  # dotask [name]
+  shift 1
+  run_task $@
 else
   echo "invalid command: ${cmd}"
 fi

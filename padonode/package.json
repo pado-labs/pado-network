@@ -16,7 +16,7 @@
     "ao:update": "node dist/cmd.js ao:update",
     "ao:deregister": "node dist/cmd.js ao:deregister",
     "_task_part": "",
-    "task": "node dist/main.js --name",
+    "task": "node dist/main.js",
     "_test_part": "",
     "test": "node --test ./src"
   },
@@ -34,6 +34,7 @@
     "mcl-wasm": "^1.4.0",
     "pino": "^9.3.1",
     "prom-client": "^15.1.3",
+    "readline-sync": "^1.4.10",
     "web3": "^4.11.0",
     "yaml": "^2.5.0"
   },

@@ -3,13 +3,14 @@ import { ethers } from "ethers";
 import { newEigenLayerWorker } from "./workers/eigenlayer";
 import { initAll } from "./workers/worker";
 import { WorkerConfig } from "./workers/config";
-import { getPrivateKey } from "./utils";
+import { getOptValue, getPrivateKey } from "./utils";
 import { generateKey } from "./crypto/lhe";
 import { newAOWorker } from "./workers/ao";
 import { dirname } from "node:path";
 import { Command } from "commander";
 import { assert } from "node:console";
 import { DeregisterParams, RegisterParams, UpdateParams } from "./workers/types";
+import { everPayBalance, everPayDeposit } from "./misc/everpay";
 const program = new Command();
 
 async function _getWorker(options: any): Promise<[WorkerConfig, any]> {
@@ -244,6 +245,28 @@ async function main() {
     .requiredOption('--quorum-id-list <ID>', 'quorum number, split by comma. e.g.: 0/1/0,1')
     .action((options) => { _registerOperatorInQuorumWithAVSRegistryCoordinator(options); });
 
+
+  // Misc/Tool/Util
+  program.command('everpay:balance')
+    .description('EverPay balance')
+    .requiredOption('--account <ADDRESS>', 'Account address.')
+    .option('--symbol <SYMBOL>', 'Token symbol, such as ETH.')
+    .action((options) => {
+      everPayBalance(options.account, options.symbol);
+    });
+
+  program.command('everpay:deposit')
+    .description('EverPay deposit')
+    .requiredOption('--chain <TOKEN>', 'Chain type. Now only supported ethereum,arweave.')
+    .requiredOption('--symbol <SYMBOL>', 'Token symbol, such as ETH.')
+    .requiredOption('--amount <AMOUNT>', 'Amount of assets to be deposit')
+    .option('--walletpath <PATH>', 'The wallet path. You should export WALLET_PATH=/path/to/your/wallet.json on docker.')
+    .action((options) => {
+      if (getOptValue(process.env.EXECUTION_FLAG, "") === "DOCKER") {
+        options.walletpath = "/pado-network/keys/wallet.json";
+      }
+      everPayDeposit(options.chain, options.symbol, options.amount, options.walletpath);
+    });
 
   await program.parseAsync(process.argv);
 }
