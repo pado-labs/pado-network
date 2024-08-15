@@ -199,7 +199,9 @@ export class PadoClient {
         console.log("reportResult.callStatic tx:\n", tx);
       } catch (error) {
         console.log("reportResult.callStatic error:\n", error);
+        throw error;
       }
+      throw error;
     }
     return null;
   }
