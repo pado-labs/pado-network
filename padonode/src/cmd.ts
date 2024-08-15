@@ -10,7 +10,7 @@ import { dirname } from "node:path";
 import { Command } from "commander";
 import { assert } from "node:console";
 import { DeregisterParams, RegisterParams, UpdateParams } from "./workers/types";
-import { everPayBalance } from "./misc/everpay";
+import { everPayBalance, everPayDeposit } from "./misc/everpay";
 const program = new Command();
 
 async function _getWorker(options: any): Promise<[WorkerConfig, any]> {
@@ -250,11 +250,22 @@ async function main() {
   program.command('everpay:balance')
     .description('EverPay balance')
     .requiredOption('--account <ADDRESS>', 'Account address.')
-    .option('--symbol <SYMBOL>', 'Token symbol, such as ETH, AR, etc.')
+    .option('--symbol <SYMBOL>', 'Token symbol, such as ETH.')
     .action((options) => {
       everPayBalance(options.account, options.symbol);
     });
-    
+
+  program.command('everpay:deposit')
+    .description('EverPay deposit')
+    .requiredOption('--chain <TOKEN>', 'Chain type. Now only supported ethereum,arweave.')
+    .requiredOption('--symbol <SYMBOL>', 'Token symbol, such as ETH.')
+    .requiredOption('--amount <AMOUNT>', 'Amount of assets to be deposit')
+    .requiredOption('--walletpath <PATH>', 'The wallet path')
+    .option('--password <PASSWORD>', 'Password for ethereum wallet')
+    .action((options) => {
+      everPayDeposit(options.chain, options.symbol, options.amount, options.walletpath, options.password);
+    });
+
   await program.parseAsync(process.argv);
 }
 main()
