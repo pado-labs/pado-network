@@ -3,7 +3,7 @@ import Arweave from 'arweave';
 import { newEverpayByEcc, newEverpayByRSA } from 'arseeding-js/cjs/payOrder';
 import { readFileSync } from "node:fs"
 import { getPrivateKey } from '../utils';
-import "./proxy.js"
+import "../proxy.js"
 
 /**
  * 
