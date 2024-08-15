@@ -2,7 +2,7 @@ import { ArweaveSigner, EthereumSigner } from 'arseeding-js';
 import { createAndSubmitItem } from 'arseeding-js/cjs/submitOrder';
 import Arweave from 'arweave';
 import { newEverpayByEcc, newEverpayByRSA, payOrder } from 'arseeding-js/cjs/payOrder';
-import "../proxy.js"
+import "../../proxy.js"
 
 const arseedingUrl = 'https://arseed.web3infra.dev';
 
