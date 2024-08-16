@@ -121,11 +121,6 @@ export class WorkerConfig extends EnvConfig {
       this.lheKeyPath = "/pado-network/keys/lhe_key.json";
       this.arWalletPath = "/pado-network/keys/ar_wallet.json";
     }
-
-    // TODO: delete on production
-    this.logLevel = "debug";
-    this.noPay = !getOptValue(process.env.PAY_FOR_ARSEEDING, false);
-
   }
 
 };
