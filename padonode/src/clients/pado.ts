@@ -60,7 +60,7 @@ export class PadoClient {
       const receipt = await tx.wait();
       this.logger.info({
         transactionHash: receipt.transactionHash,
-        gasUsed: receipt.gasUsed,
+        gasUsed: Number(receipt.gasUsed),
       }, 'data.prepareRegistry');
       const events = receipt.events;
       for (const event of events) {
@@ -92,7 +92,7 @@ export class PadoClient {
     const receipt = await tx.wait();
     this.logger.info({
       transactionHash: receipt.transactionHash,
-      gasUsed: receipt.gasUsed,
+      gasUsed: Number(receipt.gasUsed),
     }, 'data.register');
     const events = receipt.events;
     for (const event of events) {
@@ -129,7 +129,7 @@ export class PadoClient {
     const receipt = await tx.wait();
     this.logger.info({
       transactionHash: receipt.transactionHash,
-      gasUsed: receipt.gasUsed,
+      gasUsed: Number(receipt.gasUsed),
     }, 'task.submitTask');
     const events = receipt.events;
     for (const event of events) {
@@ -177,7 +177,7 @@ export class PadoClient {
       const receipt = await tx.wait();
       this.logger.info({
         transactionHash: receipt.transactionHash,
-        gasUsed: receipt.gasUsed,
+        gasUsed: Number(receipt.gasUsed),
       }, 'task.reportResult');
       const events = receipt.events;
       for (const event of events) {
@@ -221,9 +221,6 @@ export class PadoClient {
 export async function buildPadoClient(
   ecdsaWallet: ethers.Wallet,
   routerAddress: string,
-  _dataMgtAddress: string,
-  _taskMgtAddress: string,
-  _workerMgtAddress: string,
   logger: Logger,
 ): Promise<PadoClient> {
   const router = new ethers.Contract(routerAddress, routerABI, ecdsaWallet);

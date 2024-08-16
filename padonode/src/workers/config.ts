@@ -28,9 +28,6 @@ export class EnvConfig {
   nodeMetricsPort: number;
 
   // PADO
-  dataMgtAddress: string;
-  taskMgtAddress: string;
-  workerMgtAddress: string;
   routerAddress: string;
 
   // AO
@@ -83,9 +80,6 @@ export class EnvConfig {
     this.nodeMetricsPort = getOptValue(process.env.NODE_METRICS_PORT, 9094);
 
     // PADO
-    this.dataMgtAddress = getOptValue(process.env.DATA_MANAGEMENT_ADDRESS, "");
-    this.taskMgtAddress = getOptValue(process.env.TASK_MANAGEMENT_ADDRESS, "");
-    this.workerMgtAddress = getOptValue(process.env.WORKER_MANAGEMENT_ADDRESS, "");
     this.routerAddress = getOptValue(process.env.ROUTER_ADDRESS, "");
 
     // AO
@@ -127,11 +121,6 @@ export class WorkerConfig extends EnvConfig {
       this.lheKeyPath = "/pado-network/keys/lhe_key.json";
       this.arWalletPath = "/pado-network/keys/ar_wallet.json";
     }
-
-    // TODO: delete on production
-    this.logLevel = "debug";
-    this.noPay = !getOptValue(process.env.PAY_FOR_ARSEEDING, false);
-
   }
 
 };

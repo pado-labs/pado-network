@@ -203,6 +203,7 @@ export class AvsClient {
     return null;
   }
 
+
   async deregisterOperator(
     quorumNumbers: number[],
   ): Promise<ethers.ContractReceipt | null> {
@@ -220,6 +221,31 @@ export class AvsClient {
       console.log("deregisterOperator error:\n", error);
       try {
         const tx = await this.registryCoordinator.callStatic.deregisterOperator(quorumNumbers);
+        console.log("deregisterOperator.callStatic tx:\n", tx);
+      } catch (error) {
+        console.log("deregisterOperator.callStatic error:\n", error);
+      }
+    }
+    return null;
+  }
+
+  async deregisterOperatorWithAVSWorkerManager(
+    quorumNumbers: number[],
+  ): Promise<ethers.ContractReceipt | null> {
+    this.logger.info("Deregistering operator with the AVS's registry coordinator");
+
+    try {
+      console.log("deregisterOperator start");
+      const tx = await this.workerMgt.deregisterOperator(quorumNumbers);
+      // console.log("deregisterOperator tx:\n", tx);
+      const receipt = await tx.wait();
+      // console.log("deregisterOperator receipt:\n", receipt);
+      console.log("deregisterOperator successfully with transaction hash:", receipt.transactionHash);
+      return receipt
+    } catch (error) {
+      console.log("deregisterOperator error:\n", error);
+      try {
+        const tx = await this.workerMgt.callStatic.deregisterOperator(quorumNumbers);
         console.log("deregisterOperator.callStatic tx:\n", tx);
       } catch (error) {
         console.log("deregisterOperator.callStatic error:\n", error);

@@ -5,23 +5,29 @@ import { Logger } from "pino";
 import { WorkerConfig } from "./config";
 import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
-
-import * as dotenv from "dotenv";
-dotenv.config();
-
 import { AbstractWorker, ChainType } from "./types";
 import { RegisterParams, RegisterResult, DeregisterParams, DeregisterResult, UpdateParams, UpdateResult } from "./types";
 import { DoTaskParams, DoTaskResult } from "./types";
 import { initAll } from "./worker";
-
 import { AOClient, buildAOClient } from "../clients/ao";
 import { reencrypt } from "../crypto/lhe";
 import { readFileSync } from "node:fs";
 import { createDataItemSigner } from "@permaweb/aoconnect";
-
 import Arweave from "arweave";
 import { buildStorageClient, StorageClient, StorageType } from "../clients/storage";
 import { ethers } from "ethers";
+import * as dotenv from "dotenv";
+dotenv.config();
+
+
+interface TaskState {
+  /** the id of this task */
+  taskId: string,
+  /** how many times failed */
+  failedCount: number,
+  /** set when reportResult failed */
+  resultContent: string,
+};
 
 export class AOWorker extends AbstractWorker {
   aoClient!: AOClient;
@@ -30,12 +36,12 @@ export class AOWorker extends AbstractWorker {
   arWallet!: any;
   arSigner!: any;
   arweave!: any;
-  failedTasks: Map<string, number>;
+  taskStates: Map<string, TaskState>;
 
   constructor(chainType: ChainType = ChainType.AO) {
     super();
     this.chainType = chainType;
-    this.failedTasks = new Map();
+    this.taskStates = new Map();
   }
 
   async register(params: RegisterParams): Promise<RegisterResult> {
@@ -125,8 +131,28 @@ export class AOWorker extends AbstractWorker {
       return;
     }
 
+    // For some valid reason, such task timeout, can not get pending tasks, delete the task from taskState
+    let _tasks = Array.from(this.taskStates.keys());
+    for (const _task of _tasks) {
+      let rmFlag = true;
+      for (const i in pendingTasksObj) {
+        var task = pendingTasksObj[i];
+        const taskId = task["id"];
+        if (_task === taskId) {
+          rmFlag = false;
+          break;
+        }
+      }
+
+      if (rmFlag && this.taskStates.has(_task)) {
+        this.logger.info(`remove taskId:${_task} from taskStates, which not in getPendingTasksByWorkerId.`)
+        this.taskStates.delete(_task);
+      }
+    }
+
+    // scan all tasks
     // console.log("doTask pendingTasks=", pendingTasks);
-    for (var i in pendingTasksObj) {
+    for (const i in pendingTasksObj) {
       // console.log("doTask DateTime:", new Date());
 
       var task = pendingTasksObj[i];
@@ -135,15 +161,21 @@ export class AOWorker extends AbstractWorker {
       const taskId = task["id"];
       this.logger.info(`task.taskId: ${taskId}`);
 
-      {
-        // @TODO
-        const count = this.failedTasks.get(taskId);
-        if (count) {
-          this.logger.warn(`task.taskId: ${taskId} failed counts: ${count}`);
-          if (count > 10) {
-            continue;
-          }
+
+      // Task State
+      if (!this.taskStates.has(taskId)) {
+        this.taskStates.set(taskId, {
+          taskId: taskId,
+          failedCount: 0,
+          resultContent: "",
+        });
+      }
+      const taskState = this.taskStates.get(taskId) as TaskState;
+      if (taskState.failedCount > 0) {
+        if (taskState.failedCount > 3) {
+          continue;
         }
+        this.logger.warn(`task.taskId: ${taskId} failed counts: ${taskState.failedCount}`);
       }
 
       try {
@@ -204,16 +236,14 @@ export class AOWorker extends AbstractWorker {
 
           /// 3. submit result
           const res = await this.aoClient.reportResult(taskId, name, reencsks, signer);
-          console.log("reportResult res=", res);
+          this.logger.info(`reportResult res: ${res}`);
+
+          // remove the state if success
+          this.taskStates.delete(taskId);
         }
       } catch (error) {
         console.log('task.taskId', taskId, 'with error', error)
-
-        if (!this.failedTasks.has(taskId)) {
-          this.failedTasks.set(taskId, 0);
-        }
-        const count = this.failedTasks.get(taskId) as number;
-        this.failedTasks.set(taskId, count + 1);
+        taskState.failedCount += 1;
       }
     }
 
