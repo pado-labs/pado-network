@@ -14,24 +14,25 @@ import { serviceManagerABI } from "../abis/serviceManagerABI";
 import { avsDirectoryABI } from "../abis/avsDirectoryABI";
 import { blsApkRegistryABI } from "../abis/blsApkRegistryABI";
 import { workerMgtABI } from "../abis/workerMgtABI";
+import { routerABI } from "../abis/routerABI";
 
 export class BuildAllConfig {
     registryCoordinatorAddress: string;
     operatorStateRetrieverAddress: string;
-    workerMgtAddress: string;
+    routerAddress: string;
     ecdsaWallet: ethers.Wallet;
     logger: Logger;
 
     constructor(
         registryCoordinatorAddress: string,
         operatorStateRetrieverAddress: string,
-        workerMgtAddress: string,
+        routerAddress: string,
         ecdsaWallet: ethers.Wallet,
         logger: Logger,
     ) {
         this.registryCoordinatorAddress = registryCoordinatorAddress;
         this.operatorStateRetrieverAddress = operatorStateRetrieverAddress;
-        this.workerMgtAddress = workerMgtAddress;
+        this.routerAddress = routerAddress;
         this.ecdsaWallet = ecdsaWallet;
         this.logger = logger;
     }
@@ -105,12 +106,12 @@ export class BuildAllConfig {
         const blsApkRegistry = new ethers.Contract(blsApkRegistryAddress, blsApkRegistryABI, this.ecdsaWallet);
         // console.log('blsApkRegistry', blsApkRegistry);
 
-        // console.log('workerMgtAddress', this.workerMgtAddress);
-        const workerMgt = new ethers.Contract(this.workerMgtAddress, workerMgtABI, this.ecdsaWallet);
-        {
-            // const workerMgtAddress: string = await registryCoordinator.workerMgt();
-            // console.log('workerMgtAddress@', workerMgtAddress);
-        }
+        const router = new ethers.Contract(this.routerAddress, routerABI, this.ecdsaWallet);
+        const workerMgtAddress: string = await router.getWorkerMgt();
+        // console.log('workerMgtAddress', workerMgtAddress);
+        const workerMgt = new ethers.Contract(workerMgtAddress, workerMgtABI, this.ecdsaWallet);
+        // console.log('workerMgt', workerMgt);
+
 
         const avsClient = new AvsClient(
             this.ecdsaWallet,

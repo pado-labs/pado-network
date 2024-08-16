@@ -24,6 +24,16 @@ import { buildStorageClient, StorageClient, StorageType } from "../clients/stora
 import * as dotenv from "dotenv";
 dotenv.config();
 
+
+interface TaskState {
+  /** the id of this task */
+  taskId: string,
+  /** how many times failed */
+  failedCount: number,
+  /** set when reportResult failed */
+  resultContent: string,
+};
+
 export class EigenLayerWorker extends AbstractWorker {
   ecdsaWallet!: ethers.Wallet
   clients!: Clients;
@@ -34,12 +44,12 @@ export class EigenLayerWorker extends AbstractWorker {
   arWallet!: any;
   arSigner!: any;
   arweave!: any;
-  failedTasks: Map<string, number>;
+  taskStates: Map<string, TaskState>;
 
   constructor(chainType: ChainType = ChainType.Ethereum) {
     super();
     this.chainType = chainType;
-    this.failedTasks = new Map();
+    this.taskStates = new Map();
   }
 
   async register(params: RegisterParams): Promise<RegisterResult> {
@@ -128,16 +138,38 @@ export class EigenLayerWorker extends AbstractWorker {
     // console.log('getPendingTasksByWorkerId', tasks);
     this.logger.info(`tasks.length: ${tasks.length}`);
 
-    for (const task of tasks) {
-      {
-        // @TODO
-        const count = this.failedTasks.get(task.taskId);
-        if (count) {
-          this.logger.warn(`task.taskId: ${task.taskId} failed counts: ${count}`);
-          if (count > 10) {
-            continue;
-          }
+    // For some valid reason, such task timeout, can not get pending tasks, delete the task from taskState
+    let _tasks = Array.from(this.taskStates.keys());
+    for (const _task of _tasks) {
+      let rmFlag = true;
+      for (const task of tasks) {
+        if (_task === task.taskId) {
+          rmFlag = false;
+          break;
         }
+      }
+      if (rmFlag && this.taskStates.has(_task)) {
+        this.logger.info(`remove taskId:${_task} from taskStates, which not in getPendingTasksByWorkerId.`)
+        this.taskStates.delete(_task);
+      }
+    }
+
+    // scan all tasks
+    for (const task of tasks) {
+      // Task State
+      if (!this.taskStates.has(task.taskId)) {
+        this.taskStates.set(task.taskId, {
+          taskId: task.taskId,
+          failedCount: 0,
+          resultContent: "",
+        });
+      }
+      const taskState = this.taskStates.get(task.taskId) as TaskState;
+      if (taskState.failedCount > 0) {
+        if (taskState.failedCount > 10) {
+          continue;
+        }
+        this.logger.warn(`task.taskId: ${task.taskId} failed counts: ${taskState.failedCount}`);
       }
 
       try {
@@ -150,75 +182,76 @@ export class EigenLayerWorker extends AbstractWorker {
         }, 'taskInfo');
         // console.log('task.computingInfo', task.computingInfo);
 
-
-        // get data from arweave
-        const dataInfo = await this.padoClient.getDataById(task.dataId);
-        // console.log('dataInfo', dataInfo);
-        const dataIdArr = ethers.utils.arrayify(dataInfo.dataContent);
-        const dataTansactionId = Uint8ArrayToString(dataIdArr);
-        this.logger.info({
-          dataId: dataInfo.dataId,
-          dataContent: dataInfo.dataContent,
-          dataTansactionId: dataTansactionId,
-        }, 'dataInfo');
-        const enc_data = await this.storageClient.fetchData(dataTansactionId);
-        // console.log('enc_data ', enc_data);
-
-        // re-encrypt if task.taskType is DataSharing
-        const enc_sk_index = dataInfo.workerIds.indexOf(workerId); // assuming the order of workerIds
-        if (enc_sk_index == -1) {
-          this.logger.error(`taskId:${task.taskId}, workerId:${workerId} not in dataInfo.workerIds`);
-          continue;
-        }
-        const node_sk = this.lheKey.sk;
-        let consumer_pk;
-        {
-          // get consumer pk from ar
-          const dataIdArr = ethers.utils.arrayify(task.consumerPk);
-          const consumerPkTransactionId = Uint8ArrayToString(dataIdArr);
+        let resultContent = taskState.resultContent;
+        if (resultContent === "") {
+          // get data from arweave
+          const dataInfo = await this.padoClient.getDataById(task.dataId);
+          // console.log('dataInfo', dataInfo);
+          const dataIdArr = ethers.utils.arrayify(dataInfo.dataContent);
+          const dataTansactionId = Uint8ArrayToString(dataIdArr);
           this.logger.info({
-            consumerPkContent: task.consumerPk,
-            consumerPkTransactionId: consumerPkTransactionId,
-          }, 'consumerPk');
-          const pkData = await this.storageClient.fetchData(consumerPkTransactionId);
-          consumer_pk = Buffer.from(pkData).toString('hex');
+            taskId: task.taskId,
+            dataId: dataInfo.dataId,
+            dataContent: dataInfo.dataContent,
+            dataTansactionId: dataTansactionId,
+          }, 'dataInfo');
+          const enc_data = await this.storageClient.fetchData(dataTansactionId);
+          // console.log('enc_data ', enc_data);
+
+          // re-encrypt if task.taskType is DataSharing
+          const enc_sk_index = dataInfo.workerIds.indexOf(workerId); // assuming the order of workerIds
+          if (enc_sk_index == -1) {
+            this.logger.error(`taskId:${task.taskId}, workerId:${workerId} not in dataInfo.workerIds`);
+            continue;
+          }
+          const node_sk = this.lheKey.sk;
+          let consumer_pk;
+          {
+            // get consumer pk from ar
+            const dataIdArr = ethers.utils.arrayify(task.consumerPk);
+            const consumerPkTransactionId = Uint8ArrayToString(dataIdArr);
+            this.logger.info({
+              taskId: task.taskId,
+              consumerPkContent: task.consumerPk,
+              consumerPkTransactionId: consumerPkTransactionId,
+            }, 'consumerPk');
+            const pkData = await this.storageClient.fetchData(consumerPkTransactionId);
+            consumer_pk = Buffer.from(pkData).toString('hex');
+          }
+
+          const reenc_sk = reencrypt_v2(enc_sk_index + 1, node_sk, consumer_pk, enc_data);
+          // console.log("reencrypt reenc_sk=", reenc_sk);
+
+          // update result to arweave
+          const resultTransactionId = await this.storageClient.submitData(reenc_sk);
+          resultContent = ethers.utils.hexlify(stringToUint8Array(resultTransactionId));
+          this.logger.info({
+            taskId: task.taskId,
+            resultContent: resultContent,
+            resultTransactionId: resultTransactionId,
+          }, 'result');
+
+          // set resultContent, if failed on reportResult
+          taskState.resultContent = resultContent;
+        } else {
+          // if has set resultContent, we can directly run from here
+          this.logger.info(`taskId:${task.taskId} directly reportResult with resultContent:${resultContent}`);
         }
-
-        // console.log('node_sk:', node_sk)
-        // console.log('consumer_pk:', consumer_pk)
-        const reenc_sk = reencrypt_v2(enc_sk_index + 1, node_sk, consumer_pk, enc_data);
-        // console.log("reencrypt reenc_sk=", reenc_sk);
-
-        // update result to arweave
-        const resultTransactionId = await this.storageClient.submitData(reenc_sk);
-        const resultContent = ethers.utils.hexlify(stringToUint8Array(resultTransactionId));
-        this.logger.info({
-          resultContent: resultContent,
-          resultTransactionId: resultTransactionId,
-        }, 'result');
 
         // report result
         // TODO a simple way estimating the gas
-        const gasLimit = (task.computingInfo.n * 200000).toString();
-        // todo: how when failed?
-        try {
-          const res = await this.padoClient.reportResult(task.taskId, workerId, resultContent, gasLimit);
-          if (!res) {
-          }
-        } catch (error) {
-          console.log('reportResult error', error, 'try 1s later');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          const res = await this.padoClient.reportResult(task.taskId, workerId, resultContent, gasLimit);
-          console.log('try1 reportResult', res);
+        // const gasLimit = (task.computingInfo.n * 200000).toString();
+        const gasLimit = (400000).toString();
+        const res = await this.padoClient.reportResult(task.taskId, workerId, resultContent, gasLimit);
+        if (!res) {
+          console.log('reportResult.res,', res);
         }
+
+        // remove the state if success
+        this.taskStates.delete(task.taskId);
       } catch (error) {
         console.log('task.task', task.taskId, 'with error', error)
-
-        if (!this.failedTasks.has(task.taskId)) {
-          this.failedTasks.set(task.taskId, 0);
-        }
-        const count = this.failedTasks.get(task.taskId) as number;
-        this.failedTasks.set(task.taskId, count + 1);
+        taskState.failedCount += 1;
       }
     }
     // TODO add something to monitor if failed
@@ -242,12 +275,12 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
   const config = new BuildAllConfig(
     cfg.registryCoordinatorAddress,
     cfg.operatorStateRetrieverAddress,
-    cfg.workerMgtAddress,
+    cfg.routerAddress,
     ecdsaWallet, logger);
   const clients = await buildAll(config); // todo, no need build all clients
   worker.clients = clients;
 
-  worker.padoClient = await buildPadoClient(ecdsaWallet, cfg.routerAddress, cfg.dataMgtAddress, cfg.taskMgtAddress, cfg.workerMgtAddress, logger);
+  worker.padoClient = await buildPadoClient(ecdsaWallet, cfg.routerAddress, logger);
 
   const lheKey = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
   worker.lheKey = lheKey;
