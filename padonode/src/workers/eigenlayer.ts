@@ -179,7 +179,7 @@ export class EigenLayerWorker extends AbstractWorker {
       }
       const taskState = this.taskStates.get(task.taskId) as TaskState;
       if (taskState.failedCount > 0) {
-        if (taskState.failedCount > 10) {
+        if (taskState.failedCount > 3) {
           continue;
         }
         this.logger.warn(`task.taskId: ${task.taskId} failed counts: ${taskState.failedCount}`);
