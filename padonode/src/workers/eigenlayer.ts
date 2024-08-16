@@ -100,11 +100,24 @@ export class EigenLayerWorker extends AbstractWorker {
     return Promise.resolve({});
   }
 
-  deregister(params: DeregisterParams): Promise<DeregisterResult> {
+  async deregister(params: DeregisterParams): Promise<DeregisterResult> {
     console.log('deregister params', params);
+
+    try {
+      // @ts-ignore
+      const name = params.name;
+      const quorums = params.extraData ? params.extraData["quorums"] : [0]; // todo: failed if not set
+      const quorumNumbers = quorums;
+
+      const res = await this.clients.avsClient.deregisterOperatorWithAVSWorkerManager(quorumNumbers);
+      console.log(`deregister res=${res}`);
+    } catch (e) {
+      console.log("deregister exception:", e);
+    }
+
     return Promise.resolve({});
   }
-  update(params: UpdateParams): Promise<UpdateResult> {
+  async update(params: UpdateParams): Promise<UpdateResult> {
     console.log('update params', params);
     return Promise.resolve({});
   }

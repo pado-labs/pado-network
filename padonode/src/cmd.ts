@@ -85,6 +85,25 @@ async function _elRegisterPadoAVS(options: any) {
   await worker.register(params);
 }
 
+async function _elDeregisterPadoAVS(options: any) {
+  const [cfg, worker] = await _getWorker(options);
+  const quorums: Uint8Array = options.quorumIdList.split(',').map((i: number) => { return Number(i) });
+
+  let name = cfg.nodeName;
+  if (options.name && options.name !== "") { name = options.name; }
+  let extraData = {
+    "quorums": quorums
+  };
+  let params = {
+    name: name,
+    extraData: extraData,
+  } as DeregisterParams;
+  console.log('params', params);
+
+  const res = await worker.deregister(params);
+  console.log('res', res);
+}
+
 async function _elGetOperatorId(options: any) {
   const [_, worker] = await _getWorker(options);
 
@@ -221,8 +240,9 @@ async function main() {
     .action((options) => { _empty(options); });
 
   program.command('el:deregister')
-    .description('(UNSUPPORTED).')
-    .action((options) => { _empty(options); });
+    .description('Deregister to PADO AVS.')
+    .requiredOption('--quorum-id-list <ID>', 'quorum number, split by comma. e.g.: 0/1/0,1', '0')
+    .action((options) => { _elDeregisterPadoAVS(options); });
 
 
   // EigenLayer (Extends)
