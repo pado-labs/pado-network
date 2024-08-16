@@ -25,7 +25,7 @@ async function _getWorker(options: any): Promise<[WorkerConfig, any]> {
 }
 
 
-async function _registerAsOperator(options: any) {
+async function _elRegisterAsOperator(options: any) {
   const [cfg, worker] = await _getWorker(options);
 
   {
@@ -63,7 +63,7 @@ async function _registerOperatorInQuorumWithAVSRegistryCoordinator(options: any)
   }
 }
 
-async function _registerOperatorInQuorumWithAVSWorkerManager(options: any) {
+async function _elRegisterPadoAVS(options: any) {
   const [cfg, worker] = await _getWorker(options);
   const quorums: Uint8Array = options.quorumIdList.split(',').map((i: number) => { return Number(i) });
 
@@ -85,7 +85,7 @@ async function _registerOperatorInQuorumWithAVSWorkerManager(options: any) {
   await worker.register(params);
 }
 
-async function _getOperatorId(options: any) {
+async function _elGetOperatorId(options: any) {
   const [_, worker] = await _getWorker(options);
 
   {
@@ -214,7 +214,7 @@ async function main() {
   program.command('el:register')
     .description('Register to PADO AVS.')
     .requiredOption('--quorum-id-list <ID>', 'quorum number, split by comma. e.g.: 0/1/0,1', '0')
-    .action((options) => { _registerOperatorInQuorumWithAVSWorkerManager(options); });
+    .action((options) => { _elRegisterPadoAVS(options); });
 
   program.command('el:update')
     .description('(UNSUPPORTED).')
@@ -228,12 +228,12 @@ async function main() {
   // EigenLayer (Extends)
   program.command('el:register-as-operator')
     .description('Register as Operator on EigenLayer')
-    .action((options) => { _registerAsOperator(options); });
+    .action((options) => { _elRegisterAsOperator(options); });
 
   program.command('el:get-operator-id')
     .description('Get the Operator Id.')
     .option('--operator <ADDRESS>', 'the operator address')
-    .action((options) => { _getOperatorId(options); });
+    .action((options) => { _elGetOperatorId(options); });
 
   program.command('el:add-to-white-list')
     .description('Add worker to white list.(only WorkerMgt contract owner)')
@@ -249,21 +249,30 @@ async function main() {
   // Misc/Tool/Util
   program.command('everpay:balance')
     .description('EverPay balance')
-    .requiredOption('--account <ADDRESS>', 'Account address.')
+    .requiredOption('--account <ACCOUNT_ADDRESS>', 'Account address.')
     .option('--symbol <SYMBOL>', 'Token symbol, such as ETH.')
     .action((options) => {
       everPayBalance(options.account, options.symbol);
     });
 
   program.command('everpay:deposit')
-    .description('EverPay deposit')
-    .requiredOption('--chain <TOKEN>', 'Chain type. Now only supported ethereum,arweave.')
+    .description('EverPay Deposit')
+    .requiredOption('--chain <CHAIN_TYPE>', 'Chain type. Now only supported ethereum and arweave.')
     .requiredOption('--symbol <SYMBOL>', 'Token symbol, such as ETH.')
     .requiredOption('--amount <AMOUNT>', 'Amount of assets to be deposit')
-    .option('--walletpath <PATH>', 'The wallet path. You should export WALLET_PATH=/path/to/your/wallet.json on docker.')
+    .option('--walletpath <PATH>', 'The wallet path. You should export WALLET_PATH=/path/to/your/wallet.json while using docker.')
     .action((options) => {
       if (getOptValue(process.env.EXECUTION_FLAG, "") === "DOCKER") {
         options.walletpath = "/pado-network/keys/wallet.json";
+      } else {
+        if (!options.walletpath) {
+          const walletpath = getOptValue(process.env.WALLET_PATH, "");
+          if (walletpath === "") {
+            console.log("please pass wallet path by --walletpath=... or export WALLET_PATH=...");
+            return;
+          }
+          options.walletpath = walletpath;
+        }
       }
       everPayDeposit(options.chain, options.symbol, options.amount, options.walletpath);
     });
