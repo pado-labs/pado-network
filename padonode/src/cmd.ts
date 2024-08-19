@@ -123,6 +123,35 @@ async function _elAddToWhiteList(options: any) {
   }
 }
 
+async function _ethBalance(options: any) {
+  const cfg = new WorkerConfig();
+  const ethProvider = new ethers.providers.JsonRpcProvider(cfg.ethRpcUrl);
+  const ethbalance = await ethProvider.getBalance(options.account);
+  console.log(`account: ${options.account} ethereum balance: ${ethbalance}`);
+}
+async function _workerBalance(options: any) {
+  const [_, worker] = await _getWorker(options);
+
+  if (!options.account) { options.account = worker.ecdsaWallet.address; }
+  const res = await worker.padoClient.getBalance(options.account, options.symbol);
+  const workerBalance = Number(res.free);
+  console.log(`account: ${options.account} symbol: ${options.symbol} worker free balance: ${workerBalance}`);
+}
+async function _workerWithdraw(options: any) {
+  const [_, worker] = await _getWorker(options);
+
+  if (!options.account) { options.account = worker.ecdsaWallet.address; }
+  const res = await worker.padoClient.getBalance(options.account, options.symbol);
+  const workerBalance = Number(res.free);
+  const withdrawAmount = Number(options.amount);
+  if (withdrawAmount > workerBalance) {
+    console.error(`Insufficient free balance. Max free balance: ${workerBalance}`);
+    return;
+  }
+
+  await worker.padoClient.withdrawToken(options.account, options.symbol, withdrawAmount);
+}
+
 async function _geneateLHEKey(options: any) {
   console.log('options', options);
   const keyName = options.keyName;
@@ -267,6 +296,22 @@ async function main() {
 
 
   // Misc/Tool/Util
+  program.command('eth:balance')
+    .description('eth balance')
+    .requiredOption('--account <ACCOUNT_ADDRESS>', 'Account address.')
+    .action((options) => { _ethBalance(options); });
+
+  program.command('worker:balance')
+    .description('worker balance')
+    .requiredOption('--symbol <SYMBOL>', 'Token symbol, such as ETH.', 'ETH')
+    .action((options) => { _workerBalance(options); });
+
+  program.command('worker:withdraw')
+    .description('worker withdraw')
+    .requiredOption('--amount <AMOUNT>', 'Amount of assets to be withdraw')
+    .requiredOption('--symbol <SYMBOL>', 'Token symbol, such as ETH.', 'ETH')
+    .action((options) => { _workerWithdraw(options); });
+
   program.command('everpay:balance')
     .description('EverPay balance')
     .requiredOption('--account <ACCOUNT_ADDRESS>', 'Account address.')
