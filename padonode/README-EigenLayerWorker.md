@@ -189,14 +189,14 @@ Reference the following difference parts of [AO Worker](./README-AOWorker.md):
 
 As a worker, you'll get some tokens for each task you complete.
 
-You can get the balance by:
+You can get the balance(free, locked) by:
 
 ```sh
 node ./dist/cmd.js worker:balance
 ```
 
-and withdraw by:
+and withdraw by (If no amount is specified, the entire free balance is withdrawn):
 
 ```sh
-node ./dist/cmd.js worker:withdraw --amount [AMOUNT]
+node ./dist/cmd.js worker:withdraw [--amount <AMOUNT>]
 ```

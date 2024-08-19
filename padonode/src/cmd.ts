@@ -142,10 +142,21 @@ async function _workerWithdraw(options: any) {
   if (!options.account) { options.account = worker.ecdsaWallet.address; }
   const res = await worker.padoClient.getBalance(options.account, options.symbol);
   const workerBalance = Number(res.free);
-  const withdrawAmount = Number(options.amount);
-  if (withdrawAmount > workerBalance) {
+  let withdrawAmount = workerBalance;
+  if (withdrawAmount == 0) {
     console.error(`Insufficient free balance. Max free balance: ${workerBalance}`);
     return;
+  }
+
+  if (options.amount) {
+    withdrawAmount = Number(options.amount);
+    if (withdrawAmount > workerBalance) {
+      console.error(`Insufficient free balance. Max free balance: ${workerBalance}`);
+      return;
+    }
+    console.log(`withdraw free balance: ${withdrawAmount}`);
+  } else {
+    console.log(`withdraw all free balance: ${withdrawAmount}`);
   }
 
   await worker.padoClient.withdrawToken(options.account, options.symbol, withdrawAmount);
@@ -307,7 +318,7 @@ async function main() {
 
   program.command('worker:withdraw')
     .description('worker withdraw')
-    .requiredOption('--amount <AMOUNT>', 'Amount of assets to be withdraw')
+    .option('--amount <AMOUNT>', 'Amount of assets to be withdraw. Default withdraw all free balance')
     .requiredOption('--symbol <SYMBOL>', 'Token symbol, such as ETH.', 'ETH')
     .action((options) => { _workerWithdraw(options); });
 
