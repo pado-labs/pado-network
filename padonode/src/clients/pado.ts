@@ -50,6 +50,36 @@ export class PadoClient {
     const res = await this.feeMgt.getFeeTokenBySymbol(tokenSymbol);
     return res;
   }
+  async getBalance(
+    eoa: string,
+    tokenSymbol: string,
+  ): Promise<any | null> {
+    const res = await this.feeMgt.getBalance(eoa, tokenSymbol);
+    return res;
+  }
+  async withdrawToken(to: string, tokenSymbol: string, amount: number): Promise<any | null> {
+    try {
+      const tx = await this.feeMgt.withdrawToken(to, tokenSymbol, amount);
+      const receipt = await tx.wait();
+      this.logger.info({
+        transactionHash: receipt.transactionHash,
+        gasUsed: Number(receipt.gasUsed),
+      }, 'fee.withdrawToken');
+      const events = receipt.events;
+      for (const event of events) {
+        if (event.event === "TokenWithdrawn") {
+          return event.args;
+        }
+      }
+    } catch (error) {
+      console.log('fee.withdrawToken error', error);
+      const tx = await this.feeMgt.callStatic.withdrawToken(to, tokenSymbol, amount);
+      console.log('fee.withdrawToken.callStatic tx', tx);
+      throw error;
+    }
+
+    return null;
+  }
 
   /////////////////////////////////////////////////////////////////////
   /// DATA
@@ -72,6 +102,7 @@ export class PadoClient {
       console.log('prepareRegistry error', error);
       const tx = await this.dataMgt.callStatic.prepareRegistry(encryptionSchema);
       console.log('prepareRegistry.callStatic tx', tx);
+      throw error;
     }
 
     return null;

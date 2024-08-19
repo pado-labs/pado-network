@@ -10,6 +10,8 @@
   - [Run Task](#run-task)
   - [Add New Workers](#add-new-workers)
     - [Add AO Worker](#add-ao-worker)
+  - [Utilities](#utilities)
+    - [Worker Withdraw](#worker-withdraw)
 
 
 # EigenLayer Worker
@@ -180,3 +182,21 @@ Reference the following difference parts of [AO Worker](./README-AOWorker.md):
 - Storage
 - Register to PADO AO Process
 
+
+## Utilities
+
+### Worker Withdraw
+
+As a worker, you'll get some tokens for each task you complete.
+
+You can get the balance(free, locked) by:
+
+```sh
+node ./dist/cmd.js worker:balance
+```
+
+and withdraw by (If no amount is specified, the entire free balance is withdrawn):
+
+```sh
+node ./dist/cmd.js worker:withdraw [--amount <AMOUNT>]
+```
