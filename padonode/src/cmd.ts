@@ -134,8 +134,7 @@ async function _workerBalance(options: any) {
 
   if (!options.account) { options.account = worker.ecdsaWallet.address; }
   const res = await worker.padoClient.getBalance(options.account, options.symbol);
-  const workerBalance = Number(res.free);
-  console.log(`account: ${options.account} symbol: ${options.symbol} worker free balance: ${workerBalance}`);
+  console.log(`account: ${options.account} symbol: ${options.symbol} worker balance free:${res.free}, locked:${res.locked}`);
 }
 async function _workerWithdraw(options: any) {
   const [_, worker] = await _getWorker(options);
