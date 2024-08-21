@@ -291,7 +291,7 @@ export async function newAOWorker(cfg: WorkerConfig, logger: Logger, nodeApi: No
   const lheKey = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
   worker.lheKey = lheKey;
 
-  const dataStorageType = StorageType[cfg.dataStorageTypeEL as keyof typeof StorageType];
+  const dataStorageType = StorageType[cfg.dataStorageTypeAO as keyof typeof StorageType];
   if (dataStorageType == StorageType.ARSEEDING_AR || dataStorageType == StorageType.ARWEAVE) {
     const wallet = JSON.parse(readFileSync(cfg.arWalletPath).toString());
     const signer = createDataItemSigner(wallet);
