@@ -5,7 +5,6 @@
     - [Node Info](#node-info)
     - [Arweave Wallet](#arweave-wallet)
     - [LHE Key](#lhe-key)
-  - [Storage](#storage)
   - [Register to PADO AO Process](#register-to-pado-ao-process)
   - [Run Task](#run-task)
   - [Add New Workers](#add-new-workers)
@@ -73,29 +72,6 @@ LHE_KEY_PATH='/path/to/your/lhe.key.json'
 ```
 
 
-## Storage
-
-Storing data on a contract is expensive, so we are currently using [Arweave](https://www.arweave.org/) as the storage blockchain which is cheaper to store data.
-
-By default, we can use Arweave directly. However, the Arweave ecosystem itself has [some issues](https://web3infra.dev/docs/arseeding/introduction/lightNode/#why-we-need-arseeding). In order **not** to suffer from these issues, we using [Arseeding](https://web3infra.dev/docs/arseeding/introduction/lightNode) instead.
-
-
-In order to use Arseeding, we need to first transfer/deposit some AR to [everPay](https://app.everpay.io/), **which wallet corresponds to the Arweave wallet previously mentioned above**.
-
-**Alternatively**, you can also deposit on EverPay with the following command:
-
-```sh
-node ./dist/cmd.js everpay:deposit --chain <CHAIN_TYPE> --symbol <SYMBOL> --amount <AMOUNT> --walletpath <PATH>
-# e.g.:
-# node ./dist/cmd.js everpay:deposit --chain arweave --symbol AR --amount 0.00001 --walletpath /path/to/your/arweave/wallet.json
-```
-
-Meanwhile, you can check the balance on EverPay by:
-
-```sh
-node ./dist/cmd.js everpay:balance --account <ACCOUNT_ADDRESS> [--symbol <SYMBOL>]
-```
-
 
 ## Register to PADO AO Process
 
@@ -130,10 +106,29 @@ Some logs will output to `./logs/*.log`.
 
 ### Add EigenLayer Worker
 
-Reference the following difference parts of [EigenLayer Worker](./README-EigenLayerWorker.md):
-- Register as Operator on EigenLayer
-- Basic Configurations
-- ECDSA and BLS Key
-- Storage
-- Register to PADO AVS
+Step 1: Reference `./config-files/.env.holesky`(Holesky), mainly copy and append the following options and their value to `.env`:
+
+```sh
+ENABLE_EIGEN_LAYER
+ETH_RPC_URL
+REGISTRY_COORDINATOR_ADDRESS
+ROUTER_ADDRESS
+ECDSA_KEY_FILE
+ECDSA_KEY_PASSWORD
+BLS_KEY_FILE
+BLS_KEY_PASSWORD
+```
+
+Step 2: Set your own `ECDSA_KEY_FILE`, `ECDSA_KEY_PASSWORD`, `BLS_KEY_FILE`, `BLS_KEY_PASSWORD`. Reference [Register as Operator on EigenLayer](./README-EigenLayerWorker.md#register-as-operator-on-eigenlayer) and [ECDSA and BLS Key](./README-EigenLayerWorker.md#ecdsa-and-bls-key).
+
+Step 3: Deposit some ETH to everPay. Reference [Storage](./README-EigenLayerWorker.md#storage).
+
+Step 4: Register to PADO AO Process. Reference [Register to PADO AVS](./README-EigenLayerWorker.md#register-to-pado-avs).
+
+Step 5: Re-run the task. Reference [Run Task](#run-task).
+
+<br/>
+
+You can see the full configuration options from `./config-files/.env.holesky-and-ao`.
+
 
