@@ -2,97 +2,76 @@
 
 ## Introduction
 
-PADO Network is a zkFHE Decentralized Computation Network. PADO will gradually build a decentralized computer unit based on AO, providing trustless and confidential computing capabilities for the AO ecosystem.
+PADO leverages the contract to offer zkFHE-based decentralized computing units, providing trustless and confidential computing capabilities. It also utilizes Storage Blockchain as a private data storage layer.
 
-More importantly, PADO will use the Arweave blockchain as a privacy data storage layer. Users can encrypt their own data and store it securely on the Arweave blockchain through PADO's zkFHE technology. Any confidential computation request within the AO ecosystem can be sent to the zkFHE computing nodes of PADO Network through the AO.
+Users who want to get the data from Storage Blockchain can easily utilize PADO's zkFHE technology to make confidential computation requests to the contract. These requests are sent to PADO's zkFHE compute nodes.
 
-## Why PADO and AO
+PADO's zkFHE techniques are designed on top of the FHE algorithm, which synchronously performs ZK proof on the homomorphic computation process. The simultaneous integrity constraints ensure the reliability of homomorphic operations and the correctness of the encrypted result while preserving data privacy during the whole process. 
 
-zkFHE is designed on top of the FHE algorithm, which synchronously performs ZK proof on the homomorphic computation process. The simultaneous integrity constraints ensure the reliability of homomorphic operations and the correctness of the encrypted result while preserving data privacy during the whole process. zkFHE is a novel cryptographic technology that organically combines the two cutting-edge cryptographic primitives, ZK and FHE, and uses the advantages of the two to complement each other, thus providing practical **verifiable confidential computation (VCC)**.
+zkFHE is a novel cryptographic technology that organically combines the two cutting-edge cryptographic primitives, ZK and FHE, and uses the advantages of the two to complement each other, thus providing practical **verifiable confidential computation**(VCC). PADO's zkFHE technique offers several core advantages, including **openness**, **privacy-friendly**, and **computational integrity**. We believe that zkFHE is the fundamental technology for building a verifiable data economy in the Web3 era.
 
-In summary, the core advantage of zkFHE include:
+PADO's zkFHE network integrates seamlessly with the contracts and Storage Blockchain. As long as the computing, scheduling, and storage functionalities operate independently, this allows for the indefinite expansion of computing power. This enables to leverage PADO's zkFHE technology to access verifiable confidential computation and comprehensive privacy protection capabilities.
 
-● Privacy-friendly
+## About the Implementation
 
-● Computational Integrity
+Currently, we use a linearly homomorphic encryption (LHE) scheme for data-sharing purposes. The initial version of the prototype provides a plain threshold FHE version to achieve the whole functionalities without zk-based integrity ensurance. However, we believe this basic algorithm meets most of the requirements for simple applications. We will gradually build this repo with zk-LHE, adding a zero-knowledge capability to prove each procedure of the underlying linearly homomorphic encryption scheme.
 
-● General-purpose computation
+Currently, it supports both Ethereum and AO networks, and will expand to more blockchain networks in the future. Now, using the EigenLayer framework on the Ethereum network, EigenLayer operators can register to PADO AVS to become PADO Network Workers, and can also register as AO PADO Network Workers at the same time, so that they can get more computing fees.
 
-Therefore, we believe that zkFHE is the fundamental technology for building a verifiable data economy in the Web3 era.
-
-zkFHE can support any type of ciphertext computing, which breaks the ceiling of privacy restrictions for the current blockchain applications and can realize broader and richer scenarios. Typical applications include payment, voting, auction, MEV, content sharing, privacy-preserving AI, and many other fields.
-
-zkFHE stands as a groundbreaking cryptographic technology, which goes beyond a mere amalgamation of zkSNARKs and FHE algorithms. Instead, it demands a meticulous redesign and optimization of the underlying cryptographic protocols to attain the same efficiency as performant FHE algorithms.
-
-When integrated with AO and Arweave networks, PADO swiftly launches the zkFHE network in practice. Its computing, scheduling, and storage functionalities operate independently, allowing for an indefinite expansion of computing power. Furthermore, the AO ecosystem can leverage PADO's zkFHE technology to access verifiable confidential computation and comprehensive privacy protection capabilities.
-
-PADO has long been dedicated to constructing a cryptographic infrastructure for personal data sovereignty. While personal data sovereignty remains in its nascent stages, it will undergo extensive exploration and validation, serving as a pivotal element for the Web3 project's expansion beyond the non-financial domain. We firmly believe that the integrationwith the AO hyper-parallel computer, will significantly expedite the establishment of personal data sovereignty and a verifiable data economy.
-
-Looking ahead, we envision a future where every user can safeguard their data sovereignty through blockchain and cryptography.
-
-## Roles
-
-There are three roles in PADO Network, namely `PADO Node`, `Data Provider` and `Data User`.
-
-### PADO Node
-
-`PADO Node` provides computation services. It publishes its public key for `Data Provider` to encrypt data and reencrypts the encrypted data by `Data Provider` using its private key and the public key of `Data User`.
-
-### Data Provider
-
-`Data Provider` is the owner of `Data`. It encrypts data using the public keys of `PADO Node` and publishes it on Arweave.
-
-### Data User
-
-`Data User` is the consumer of `Data`. It submits a task containing its public key to `PADO Node` and decrypts the reencrypted data with its private key to get the plain data provided by `Data Provider`.
+We are currently using Arweave as the storage blockchain, and will expand to more storage blockchains in the future, such as Filecoin, Greenfield, etc.
 
 
-## Components
+## Main Components
 
-PADO Network consists of three parts: PADO AO SDK, PADO AO Process and PADO Node.
+The data sharing and incentive workflow allows data providers to share their data securely and privately with data users. Key components are listed as follows:
 
-### PADO AO SDK
+1. **PADO SDK**
+   
+    Through the SDK developers can upload a user's encrypted data, and decrypt the ciphertext data.
+   
+   The github link: [PADO SDK](https://github.com/pado-labs/pado-ao-sdk).
 
-This is AO SDK of PADO Network for dapps developer. Through the SDK developers can upload user encrypted data, obtain and decrypt data.
 
-For specific interface details, please refer to the github link: https://github.com/pado-labs/pado-ao-sdk.
+2. **PADO Contract**
+   
+   PADO Contract, which mainly manages data, nodes, verifiable confidential computing tasks and related results. The contract also handles computation costs.
 
-### PADO AO Process
+   The github link of Ethereum: [PADO Network Contracts](https://github.com/pado-labs/pado-network-contracts).
+   
+   The github link of AO: [PADO AO Process](https://github.com/pado-labs/pado-ao-process).
 
-PADO AO Process is processes on AO, which mainly manages data, manages nodes, manages verifiable confidential computing tasks and results, and handles computing costs.
 
-The github link: https://github.com/pado-labs/pado-ao-process.
+3. **PADO Node**
+   
+   PADO Node is an environment that truly performs verifiable confidential computations. Mainly to obtain verifiable confidential computing tasks, execute tasks, and report results.
 
-### PADO Node
+   The github link: [PADO Node](https://github.com/pado-labs/pado-network/tree/main/padonode). The [WASM wrapper](https://github.com/pado-labs/pado-network/blob/main/lib/lhe/README.md) for [threshold-zk-LHE](https://github.com/pado-labs/threshold-zk-LHE).
 
-PADO Node is an environment that truly performs verifiable confidential computations. Mainly to obtain verifiable confidential computing tasks, execute tasks, and report results.
 
-The github link: https://github.com/pado-labs/pado-network/tree/main/padonode.
+## Workflow
 
-The [WASM wrapper](./lib/lhe/README.md) for [threshold-zk-LHE](https://github.com/pado-labs/threshold-zk-LHE).
+![pado-network](./pictures/pado-ao-v2.png)
 
-## Architecture
+1. **Register PADO Node**
+   
+   After the PADO Node is started, it shall be registered in the Worker Management Contract. The registered information includes name, description, public key, owner address, etc.
+   
+2. **Upload data**
+   
+   Data Providers can upload encrypted data through dapp based on the PADO SDK and set data prices at the time of upload.
+   The data encrypted by the FHE algorithm and the PADO Node public key will be uploaded to Arweave, and the data information will be registered to the Data Management Contract.
 
-![pado-ao](./pictures/pado-ao.jpg)
 
-### Register PADO Node
+3. **Submit task**
+   
+   Data users can submit computation tasks with their public keys through dapp based on PADO SDK, and pay certain computation fees and data usage fees. The computation tasks will be submitted to the Task Management Contract.
 
-After PADO Node is started, it needs to be registered in the Node Registry Process in AO. The registered information includes name, description, publickey and owner address, etc.
 
-### Upload Data
+4. **Task execution**
+   
+   PADO Node obtains computing tasks from the Task Management Contract, uses the LHE algorithm to compute the tasks, and reports the results to the Task Management Contract after computation. Task Management Contract verifies the results. After completing the verification, the fee is distributed to the data provider and PADO Nodes.
 
-Data Provider can upload encrypted data through dapp developed based on PADO SDK and set data prices at the same time. The data encrypted by the FHE algorithm and the PADO Node public key will be uploaded to Arweave, and the data information will be registered to AO's Data Registry Process.
 
-### Submit Task
+5. **Get Result**
 
-Data User submits computation tasks with Data User Public Key through the dapp developed based on PADO SDK, and pays a certain computation and data fee. The computation tasks will be submitted to AO's Task Process.
-
-### Get and Run Task
-
-PADO Node obtains computing tasks from the Task Process in AO, uses the zkFHE algorithm to run the tasks, and reports the results to the Task Process after running.
-
-Task Process verifies the results, and after passing the verification, the fee is distributed to the Data Provider and PADO Node.
-
-### Get Data
-
-Data User obtains encrypted data from Arweave, obtains task results and data information from Process, and then uses the FHE algorithm and Data User Public Key in the SDK to decrypt the results.
+   Data users obtain encrypted data from Arweave, obtain task results and related information from the contracts and storage blockchain, and then use the LHE algorithm with their private key in the SDK to decrypt the results.
