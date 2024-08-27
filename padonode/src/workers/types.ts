@@ -2,7 +2,8 @@ import { Logger } from "pino";
 import { WorkerConfig } from "./config";
 import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
-import { Metrics } from "../metrics/metrics";
+import { MiscMetrics } from "../metrics/miscmetrics";
+import { Collector as RpcCollector } from "../metrics/collectors/rpc-calls/rps-calls";
 import { LHEKey } from "../crypto/lhe";
 
 export type CommonObject = {
@@ -148,7 +149,8 @@ export abstract class AbstractWorker implements IWorker {
   logger!: Logger;
   nodeApi!: NodeApi;
   registry!: Registry;
-  metrics!: Metrics;
+  miscMetrics!: MiscMetrics;
+  rpcCollector!: RpcCollector;
 
   // inherited from IWorker
   abstract register(params: RegisterParams): Promise<RegisterResult>;

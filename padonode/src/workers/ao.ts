@@ -5,10 +5,11 @@ import { Logger } from "pino";
 import { WorkerConfig } from "./config";
 import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
+import { MiscMetrics } from "../metrics/miscmetrics";
+import { Collector as RpcCollector } from "../metrics/collectors/rpc-calls/rps-calls";
 import { AbstractWorker, ChainType } from "./types";
 import { RegisterParams, RegisterResult, DeregisterParams, DeregisterResult, UpdateParams, UpdateResult } from "./types";
 import { DoTaskParams, DoTaskResult } from "./types";
-import { initAll } from "./worker";
 import { AOClient, buildAOClient } from "../clients/ao";
 import { reencrypt } from "../crypto/lhe";
 import { readFileSync } from "node:fs";
@@ -279,14 +280,18 @@ export class AOWorker extends AbstractWorker {
 };
 
 
-export async function newAOWorker(cfg: WorkerConfig, logger: Logger, nodeApi: NodeApi, registry: Registry): Promise<AOWorker> {
+export async function newAOWorker(cfg: WorkerConfig, logger: Logger, nodeApi: NodeApi, registry: Registry, miscMetrics: MiscMetrics): Promise<AOWorker> {
   const worker = new AOWorker(ChainType.Holesky);
   worker.logger = logger;
   worker.nodeApi = nodeApi;
   worker.registry = registry;
+  worker.miscMetrics = miscMetrics;
 
   // init something special
-  worker.aoClient = await buildAOClient(cfg.aoDataRegistryProcessId, cfg.aoNodeRegistryProcessId, cfg.aoTasksProcessId, logger);
+  const rpcCollector = new RpcCollector('ao', cfg.avsName, registry);
+  worker.rpcCollector = rpcCollector;
+
+  worker.aoClient = await buildAOClient(cfg.aoDataRegistryProcessId, cfg.aoNodeRegistryProcessId, cfg.aoTasksProcessId, logger, rpcCollector);
 
   const lheKey = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
   worker.lheKey = lheKey;
@@ -316,27 +321,9 @@ export async function newAOWorker(cfg: WorkerConfig, logger: Logger, nodeApi: No
     worker.arweave,
     cfg.noPay,
     worker.logger,
+    rpcCollector,
   );
 
   worker.cfg = cfg;
   return worker;
-}
-
-
-async function test() {
-  const [cfg, logger, nodeApi, registry] = initAll();
-  const worker = await newAOWorker(cfg, logger, nodeApi, registry);
-  console.log('typeof worker', typeof worker);
-
-  // register
-  await worker.register({
-    name: "test1",
-    description: "test1's description",
-    taskTypeConfig: [],
-  } as RegisterParams);
-
-}
-
-if (require.main === module) {
-  test();
 }

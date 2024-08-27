@@ -3,18 +3,17 @@
  */
 import { Logger } from "pino";
 import { ethers } from "ethers";
-import { BuildAllConfig, buildAll, Clients } from "../clients/builder";
 import { getPrivateKey, stringToUint8Array, Uint8ArrayToString } from "../utils";
 import { WorkerConfig } from "./config";
 import { NodeApi } from "../nodeapi";
 import { Registry } from 'prom-client';
+import { MiscMetrics } from "../metrics/miscmetrics";
 import { EigenMetrics } from "../metrics/eigenmetrics";
 import { Collector as RpcCollector } from "../metrics/collectors/rpc-calls/rps-calls";
 import { Collector as EconomicsCollector } from "../metrics/collectors/economic/economics";
 import { AbstractWorker, ChainType } from "./types";
 import { RegisterParams, RegisterResult, DeregisterParams, DeregisterResult, UpdateParams, UpdateResult } from "./types";
 import { DoTaskParams, DoTaskResult } from "./types";
-import { initAll, runWorker } from "./worker";
 import { buildPadoClient, PadoClient } from "../clients/pado";
 import { readFileSync } from "node:fs";
 import { createDataItemSigner } from "@permaweb/aoconnect";
@@ -22,8 +21,18 @@ import Arweave from "arweave";
 import { reencrypt_v2 } from "../crypto/lhe";
 import { buildStorageClient, StorageClient, StorageType } from "../clients/storage";
 import * as dotenv from "dotenv";
+//@ts-ignore
+import { randomInt } from "node:crypto";
+import { everPayBalance } from "../misc/everpay";
+import { buildELClient, ELClient } from "../clients/eigenlayer";
+import { AvsClient, buildAvsClient } from "../clients/avs";
 dotenv.config();
 
+
+interface TaskStatistics {
+  successCount: number,
+  failedCount: number,
+};
 
 interface TaskState {
   /** the id of this task */
@@ -36,20 +45,26 @@ interface TaskState {
 
 export class EigenLayerWorker extends AbstractWorker {
   ecdsaWallet!: ethers.Wallet
-  clients!: Clients;
+  elClient!: ELClient;
+  avsClient!: AvsClient;
   padoClient!: PadoClient;
   storageClient!: StorageClient;
   eigenMetrics!: EigenMetrics;
+  economicsCollector!: EconomicsCollector;
   lheKey!: any;
   arWallet!: any;
   arSigner!: any;
   arweave!: any;
   taskStates: Map<string, TaskState>;
+  taskStatistics: TaskStatistics;
+  lastUpdateBalanceTime: number;
 
   constructor(chainType: ChainType = ChainType.Ethereum) {
     super();
     this.chainType = chainType;
     this.taskStates = new Map();
+    this.taskStatistics = { successCount: 0, failedCount: 0 };
+    this.lastUpdateBalanceTime = 0;
   }
 
   async register(params: RegisterParams): Promise<RegisterResult> {
@@ -83,7 +98,7 @@ export class EigenLayerWorker extends AbstractWorker {
         publicKeys.push(pkTransactionIdHex);
       }
 
-      const res = await this.clients.avsClient.registerOperatorInQuorumWithAVSWorkerManager(
+      const res = await this.avsClient.registerOperatorInQuorumWithAVSWorkerManager(
         taskTypes,
         publicKeys,
         salt,
@@ -109,7 +124,7 @@ export class EigenLayerWorker extends AbstractWorker {
       const quorums = params.extraData ? params.extraData["quorums"] : [0]; // todo: failed if not set
       const quorumNumbers = quorums;
 
-      const res = await this.clients.avsClient.deregisterOperatorWithAVSWorkerManager(quorumNumbers);
+      const res = await this.avsClient.deregisterOperatorWithAVSWorkerManager(quorumNumbers);
       console.log(`deregister res=${res}`);
     } catch (e) {
       console.log("deregister exception:", e);
@@ -122,7 +137,47 @@ export class EigenLayerWorker extends AbstractWorker {
     return Promise.resolve({});
   }
 
+  private async _updateBalanceMetrics() {
+    // query balance at least every 15s
+    if (Date.now() - this.lastUpdateBalanceTime < 15 * 1000) return;
+    this.lastUpdateBalanceTime = Date.now();
+
+    {
+      const tokenShow = "ETH(EverPay)";
+      const results = await everPayBalance(this.ecdsaWallet.address, "ETH");
+      for (const res of results) {
+        if (res.chain === "ethereum" && res.symbol === "ETH") {
+          this.miscMetrics.setBalanceTotal(Number(res.balance) / 1.0e18, tokenShow);
+        }
+      }
+    }
+
+    {
+      const tokenShow = "ETH(Earned)";
+      const res = await this.padoClient.getBalance(this.ecdsaWallet.address, 'ETH');
+      this.miscMetrics.setBalanceTotal(Number(res.free) / 1.0e18, tokenShow);
+    }
+    {
+      const tokenShow = "ETH";
+      const ethProvider = new ethers.providers.JsonRpcProvider(this.cfg.ethRpcUrl);
+      const ethBalance = await ethProvider.getBalance(this.ecdsaWallet.address);
+      console.log('ethBalance  ', Number(ethBalance));
+      this.miscMetrics.setBalanceTotal(Number(ethBalance) / 1.0e18, tokenShow);
+    }
+  }
+
+  private async _updateMiscMetrics() {
+    this._updateBalanceMetrics();
+    {
+      const taskType = "EL.DataSharing";
+      this.miscMetrics.setTaskSuccessCount(this.taskStatistics.successCount, taskType);
+      this.miscMetrics.setTaskFailedCount(this.taskStatistics.failedCount, taskType);
+    }
+  }
+
   async doTask(_params: DoTaskParams): Promise<DoTaskResult> {
+    await this._updateMiscMetrics();
+
     // console.log('doTask params', params);
     try {
       await this._doTask();
@@ -134,7 +189,7 @@ export class EigenLayerWorker extends AbstractWorker {
   }
 
   private async _getWorkId(): Promise<string> {
-    return await this.clients.avsClient.getOperatorId(this.ecdsaWallet.address);
+    return await this.avsClient.getOperatorId(this.ecdsaWallet.address);
   }
 
 
@@ -179,13 +234,19 @@ export class EigenLayerWorker extends AbstractWorker {
       }
       const taskState = this.taskStates.get(task.taskId) as TaskState;
       if (taskState.failedCount > 0) {
-        if (taskState.failedCount > 3) {
+        const retries = 3;
+        if (taskState.failedCount == retries + 1) {
+          this.taskStatistics.failedCount += 1;
+        }
+        if (taskState.failedCount > retries) {
           continue;
         }
         this.logger.warn(`task.taskId: ${task.taskId} failed counts: ${taskState.failedCount}`);
       }
 
+      const task_beg = Date.now();
       try {
+        this.rpcCollector.addRpcRequestTotal("doTask", '1.0');
         this.logger.info({
           taskId: task.taskId,
           taskType: task.taskType,
@@ -252,32 +313,38 @@ export class EigenLayerWorker extends AbstractWorker {
         }
 
         // report result
-        // TODO a simple way estimating the gas
-        // const gasLimit = (task.computingInfo.n * 200000).toString();
         const gasLimit = (400000).toString();
         const res = await this.padoClient.reportResult(task.taskId, workerId, resultContent, gasLimit);
-        if (!res) {
-          console.log('reportResult.res,', res);
-        }
+        if (res == null) {// Failed
+          taskState.failedCount += 1;
+        } else { // OK
+          const task_interval = (Date.now() - task_beg) / 1000;
+          this.rpcCollector.observeRpcRequestDurationSeconds(task_interval, "doTask", '1.0');
 
-        // remove the state if success
-        this.taskStates.delete(task.taskId);
+          // remove the state if success
+          this.taskStates.delete(task.taskId);
+
+          this.taskStatistics.successCount += 1;
+        }
       } catch (error) {
         console.log('task.task', task.taskId, 'with error', error)
         taskState.failedCount += 1;
       }
     }
-    // TODO add something to monitor if failed
   }
 };
 
-export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nodeApi: NodeApi, registry: Registry): Promise<EigenLayerWorker> {
+export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nodeApi: NodeApi, registry: Registry, miscMetrics: MiscMetrics): Promise<EigenLayerWorker> {
   const worker = new EigenLayerWorker(ChainType.Holesky);
   worker.logger = logger;
   worker.nodeApi = nodeApi;
   worker.registry = registry;
+  worker.miscMetrics = miscMetrics;
 
   // init something special
+  const rpcCollector = new RpcCollector('eigen', cfg.avsName, registry);
+  worker.rpcCollector = rpcCollector;
+
 
   // Clients
   const ethProvider = new ethers.providers.JsonRpcProvider(cfg.ethRpcUrl);
@@ -285,15 +352,9 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
   const ecdsaWallet = new ethers.Wallet(ecdsaPrivateKey, ethProvider);
   worker.ecdsaWallet = ecdsaWallet;
 
-  const config = new BuildAllConfig(
-    cfg.registryCoordinatorAddress,
-    cfg.operatorStateRetrieverAddress,
-    cfg.routerAddress,
-    ecdsaWallet, logger);
-  const clients = await buildAll(config); // todo, no need build all clients
-  worker.clients = clients;
-
-  worker.padoClient = await buildPadoClient(ecdsaWallet, cfg.routerAddress, logger);
+  worker.elClient = await buildELClient(ecdsaWallet, cfg.registryCoordinatorAddress, logger);
+  worker.avsClient = await buildAvsClient(ecdsaWallet, cfg.registryCoordinatorAddress, cfg.routerAddress, worker.elClient, logger);
+  worker.padoClient = await buildPadoClient(ecdsaWallet, cfg.routerAddress, logger, rpcCollector);
 
   const lheKey = JSON.parse(readFileSync(cfg.lheKeyPath).toString());
   worker.lheKey = lheKey;
@@ -320,11 +381,9 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
     worker.arweave,
     cfg.noPay,
     worker.logger,
+    rpcCollector,
   );
 
-
-  // @ts-ignore
-  const rpcCollector = new RpcCollector(cfg.avsName, registry);
 
   // todo
   const quorumNames = {
@@ -335,101 +394,15 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
   };
   // @ts-ignore
   const economicsCollector = new EconomicsCollector(
-    worker.clients.elClient,
-    worker.clients.avsClient,
+    worker.elClient,
+    worker.avsClient,
     cfg.avsName, logger, worker.ecdsaWallet.address, quorumNames,
     registry);
+  worker.economicsCollector = economicsCollector;
 
   const eigenMetrics = new EigenMetrics(cfg.avsName, logger, registry);
   worker.eigenMetrics = eigenMetrics;
 
-
   worker.cfg = cfg;
   return worker;
-}
-
-
-async function test() {
-  const [cfg, logger, nodeApi, registry, metrics] = initAll();
-  const worker = await newEigenLayerWorker(cfg, logger, nodeApi, registry);
-  console.log('typeof worker', typeof worker);
-
-  {
-    console.log('---------------------------- registerAsOperator');
-    const operatorInfo = {
-      address: worker.ecdsaWallet.address, // todo
-      earningsReceiverAddress: cfg.earningsReceiver === "" ? worker.ecdsaWallet.address : cfg.earningsReceiver,
-      delegationApproverAddress: cfg.delegationApprover,
-      stakerOptOutWindowBlocks: 0,// todo
-      metadataUrl: cfg.metadataURI,
-    };
-    console.log(operatorInfo);
-    await worker.clients.elClient.registerAsOperator(operatorInfo);
-  }
-  {
-    console.log('---------------------------- el get');
-    const isRegistered = await worker.clients.elClient.isOperatorRegistered(worker.ecdsaWallet.address);
-    console.log('isRegistered', isRegistered);
-
-    const isFrozen = await worker.clients.elClient.operatorIsFrozen(worker.ecdsaWallet.address);
-    console.log('isFrozen', isFrozen);
-  }
-  {
-    console.log('---------------------------- avs register [0,1]');
-    const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32));
-    const expiry = Math.floor(Date.now() / 1000) + cfg.operatorSignatureExpirySeconds;
-    const blsPrivateKey = await getPrivateKey(cfg.blsKeyFile, cfg.blsKeyPass);
-    const quorumNumbers = [0, 1];
-    const socket = cfg.operatorSocketIpPort;
-
-    await worker.clients.avsClient.registerOperatorInQuorumWithAVSRegistryCoordinator(
-      salt,
-      expiry,
-      blsPrivateKey,
-      quorumNumbers,
-      socket,
-    );
-  }
-  {
-    console.log('---------------------------- avs get');
-    const operatorId = await worker.clients.avsClient.getOperatorId(worker.ecdsaWallet.address);
-    console.log('operatorId', operatorId);
-
-    const operator = await worker.clients.avsClient.getOperatorFromId(operatorId);
-    console.log('operator', operator);
-
-    const isRegistered = await worker.clients.avsClient.isOperatorRegistered(operator);
-    console.log('isRegistered', isRegistered);
-
-    const quorumStakes = await worker.clients.avsClient.getOperatorStakeInQuorumsOfOperatorAtCurrentBlock(operatorId);
-    console.log('quorumStakes', quorumStakes);
-  }
-  {
-    console.log('---------------------------- avs deregister 0');
-    const quorumNumbers = [0];
-    await worker.clients.avsClient.deregisterOperator(quorumNumbers);
-
-    const isRegistered = await worker.clients.avsClient.isOperatorRegistered(worker.ecdsaWallet.address);
-    console.log('isRegistered', isRegistered);
-  }
-  {
-    console.log('---------------------------- avs deregister 1');
-    const quorumNumbers = [1];
-    await worker.clients.avsClient.deregisterOperator(quorumNumbers);
-
-    const isRegistered = await worker.clients.avsClient.isOperatorRegistered(worker.ecdsaWallet.address);
-    console.log('isRegistered', isRegistered);
-  }
-
-  {
-    nodeApi.start(cfg.nodeNodeApiPort);
-    metrics.start(cfg.nodeMetricsPort);
-  }
-  {
-    runWorker(worker);
-    runWorker([worker, worker]);
-  }
-}
-if (require.main === module) {
-  test();
 }
