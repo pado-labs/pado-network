@@ -8,6 +8,7 @@ import { dataMgtABI } from "../abis/dataMgtABI";
 import { taskMgtABI } from "../abis/taskMgtABI";
 import { workerMgtABI } from "../abis/workerMgtABI";
 import { routerABI } from "../abis/routerABI";
+import { Collector as RpcCollector } from "../metrics/collectors/rpc-calls/rps-calls";
 
 interface EncryptionSchema {
   t: number;
@@ -15,7 +16,7 @@ interface EncryptionSchema {
 };
 interface PriceInfo {
   tokenSymbol: string;
-  price: number;
+  price: bigint;
 };
 
 
@@ -33,6 +34,8 @@ export class PadoClient {
     private readonly workerMgt: ethers.Contract,
     // @ts-ignore
     private readonly logger: Logger,
+    // @ts-ignore
+    private readonly rpcCollector: RpcCollector,
   ) {
   }
 
@@ -142,7 +145,13 @@ export class PadoClient {
   async getDataById(
     dataId: string,
   ): Promise<any | null> {
+    const timer_beg = Date.now();
+    this.rpcCollector.addRpcRequestTotal("dataMgt.getDataById", '1.0');
+
     const res = await this.dataMgt.getDataById(dataId);
+
+    const durations = (Date.now() - timer_beg) / 1000;
+    this.rpcCollector.observeRpcRequestDurationSeconds(durations, "dataMgt.getDataById", '1.0');
     return res;
   }
 
@@ -153,7 +162,7 @@ export class PadoClient {
     taskType: number,
     consumerPk: string,
     dataId: string,
-    feeAmount: number,
+    feeAmount: bigint,
   ): Promise<any | null> {
     const submitTaskIdentifier = 'submitTask(uint8,bytes,bytes32)';
     let tx = await this.taskMgt[submitTaskIdentifier](taskType, consumerPk, dataId, { value: feeAmount });
@@ -187,7 +196,13 @@ export class PadoClient {
    * @returns Task[]
    */
   async getPendingTasksByWorkerId(workerId: string): Promise<any | null> {
+    const timer_beg = Date.now();
+    this.rpcCollector.addRpcRequestTotal("taskMgt.getPendingTasksByWorkerId", '1.0');
+
     let res = await this.taskMgt.getPendingTasksByWorkerId(workerId);
+
+    const durations = (Date.now() - timer_beg) / 1000;
+    this.rpcCollector.observeRpcRequestDurationSeconds(durations, "taskMgt.getPendingTasksByWorkerId", '1.0');
     return res;
   }
 
@@ -201,8 +216,19 @@ export class PadoClient {
     return res;
   }
 
-
+  /**
+   * 
+   * @param taskId 
+   * @param workerId 
+   * @param result 
+   * @param gasLimit 
+   * @returns 
+   */
   async reportResult(taskId: string, workerId: string, result: string, gasLimit: string): Promise<any | null> {
+    const timer_beg = Date.now();
+    this.rpcCollector.addRpcRequestTotal("taskMgt.reportResult", '1.0');
+
+    let res = null;
     try {
       const tx = await this.taskMgt.reportResult(taskId, workerId, result, { gasLimit: gasLimit });
       const receipt = await tx.wait();
@@ -213,28 +239,16 @@ export class PadoClient {
       const events = receipt.events;
       for (const event of events) {
         if (event.event === "ResultReported") {
-          return event.args;
+          res = event.args;
+          break;
         }
       }
+      const durations = (Date.now() - timer_beg) / 1000;
+      this.rpcCollector.observeRpcRequestDurationSeconds(durations, "taskMgt.reportResult", '1.0');
     } catch (error: any) {
-      console.log("reportResult error:\n", error, '\ntry callStatic');
-      if (error) {
-        if (error.error) {
-          if (error.error.message) {
-            console.error(`reportResult error: ${error.error.message}`);
-          }
-        }
-      }
-      try {
-        const tx = await this.taskMgt.callStatic.reportResult(taskId, workerId, result);
-        console.log("reportResult.callStatic tx:\n", tx);
-      } catch (error) {
-        console.log("reportResult.callStatic error:\n", error);
-        throw error;
-      }
-      throw error;
+      this.logger.error(error, 'reportResult.error');
     }
-    return null;
+    return res;
   }
 
 
@@ -253,6 +267,7 @@ export async function buildPadoClient(
   ecdsaWallet: ethers.Wallet,
   routerAddress: string,
   logger: Logger,
+  rpcCollector: RpcCollector,
 ): Promise<PadoClient> {
   const router = new ethers.Contract(routerAddress, routerABI, ecdsaWallet);
   const feeMgtAddress: string = await router.getFeeMgt();
@@ -276,6 +291,7 @@ export async function buildPadoClient(
     taskMgt,
     workerMgt,
     logger,
+    rpcCollector,
   );
 
   return padoClient;
