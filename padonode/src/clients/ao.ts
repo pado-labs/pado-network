@@ -3,6 +3,7 @@
  */
 import { result, message, dryrun } from "@permaweb/aoconnect";
 import { Logger } from "pino";
+import { Collector as RpcCollector } from "../metrics/collectors/rpc-calls/rps-calls";
 
 function getMessageResultData(Result: any/*type:MessageResult*/, showResult = false): any {
   if (showResult) {
@@ -43,6 +44,8 @@ export class AOClient {
     private readonly TASKS_PROCESS_ID: string,
     // @ts-ignore
     private readonly logger: Logger,
+    // @ts-ignore
+    private readonly rpcCollector: RpcCollector,
   ) { }
 
 
@@ -56,6 +59,9 @@ export class AOClient {
    * @returns 
    */
   async getPendingTasks(): Promise<any> {
+    // const timer_beg = Date.now();
+    // this.rpcCollector.addRpcRequestTotal("taskProcess.getPendingTasks", '1.0');
+
     let { Messages } = await dryrun({
       process: this.TASKS_PROCESS_ID,
       tags: [
@@ -63,6 +69,9 @@ export class AOClient {
       ],
     });
     const res = Messages[0].Data;
+
+    // const durations = (Date.now() - timer_beg) / 1000;
+    // this.rpcCollector.observeRpcRequestDurationSeconds(durations, "taskProcess.getPendingTasks", '1.0');
     return res;
   }
 
@@ -205,12 +214,15 @@ export async function buildAOClient(
   AO_DATAREGISTRY_PROCESS_ID: string,
   AO_NODEREGISTRY_PROCESS_ID: string,
   AO_TASKS_PROCESS_ID: string,
-  logger: Logger): Promise<AOClient> {
+  logger: Logger,
+  rpcCollector: RpcCollector,
+): Promise<AOClient> {
   const aoClient = new AOClient(
     AO_DATAREGISTRY_PROCESS_ID,
     AO_NODEREGISTRY_PROCESS_ID,
     AO_TASKS_PROCESS_ID,
     logger,
+    rpcCollector,
   );
 
   return aoClient;

@@ -1,6 +1,5 @@
 import { Counter, Gauge, Registry } from 'prom-client';
-import { pino, Logger } from 'pino';
-import express from 'express';
+import { Logger } from 'pino';
 
 
 // Constants
@@ -17,6 +16,7 @@ export class EigenMetrics {
         this.avsName = avsName;
         this.logger = logger;
         this.registry = registry;
+        this.logger.info('new eigen metrics');
 
         // Metrics
         this.feeEarnedTotal = new Counter({
@@ -54,34 +54,4 @@ export class EigenMetrics {
     public setPerformanceScore(score: number) {
         this.performanceScore.labels(this.avsName).set(score);
     }
-
-    public async start(port: number = 9094) {
-        const app = express();
-
-        // Expose the metrics endpoint
-        app.get("/metrics", async (_req, res) => {
-            this.logger.info(`calling /metrics`);
-            res.type("text/plain");
-            const m = await this.registry.metrics();
-            res.send(m);
-        });
-
-        try {
-            app.listen(port, () => {
-                console.log(`Metrics server is running on port ${port}.`);
-            });
-        } catch (e) {
-            this.logger.error(`Prometheus server failed: ${e}`);
-        }
-    }
-}
-
-
-async function test() {
-    const logger = pino({ level: 'info' });
-    const metrics = new EigenMetrics('PADO AVS', logger);
-    metrics.start();
-}
-if (require.main === module) {
-    test();
 }

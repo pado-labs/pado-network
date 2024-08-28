@@ -1,11 +1,9 @@
 import { writeFileSync, mkdir } from "node:fs";
 import { ethers } from "ethers";
-import { newEigenLayerWorker } from "./workers/eigenlayer";
-import { initAll } from "./workers/worker";
+import { getAOWorker, getEigenLayerWorker } from "./workers/worker";
 import { WorkerConfig } from "./workers/config";
 import { getOptValue, getPrivateKey } from "./utils";
 import { generateKey } from "./crypto/lhe";
-import { newAOWorker } from "./workers/ao";
 import { dirname } from "node:path";
 import { Command } from "commander";
 import { assert } from "node:console";
@@ -13,20 +11,10 @@ import { DeregisterParams, RegisterParams, UpdateParams } from "./workers/types"
 import { everPayBalance, everPayDeposit } from "./misc/everpay";
 const program = new Command();
 
-async function _getWorker(options: any): Promise<[WorkerConfig, any]> {
-  console.log('options', options);
-
-  const [cfg, logger, nodeApi, registry, _] = initAll();
-  const worker = await newEigenLayerWorker(cfg, logger, nodeApi, registry);
-
-  // @TODO if enableXXX
-
-  return [worker.cfg, worker];
-}
 
 
 async function _elRegisterAsOperator(options: any) {
-  const [cfg, worker] = await _getWorker(options);
+  const [cfg, worker] = await getEigenLayerWorker(options);
 
   {
     const operatorInfo = {
@@ -37,13 +25,13 @@ async function _elRegisterAsOperator(options: any) {
       metadataUrl: cfg.metadataURI,
     };
     console.log(operatorInfo);
-    await worker.clients.elClient.registerAsOperator(operatorInfo);
+    await worker.elClient.registerAsOperator(operatorInfo);
   }
 }
 
 
 async function _registerOperatorInQuorumWithAVSRegistryCoordinator(options: any) {
-  const [cfg, worker] = await _getWorker(options);
+  const [cfg, worker] = await getEigenLayerWorker(options);
 
   {
     const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32));
@@ -53,7 +41,7 @@ async function _registerOperatorInQuorumWithAVSRegistryCoordinator(options: any)
     const quorumNumbers = Array.from(quorums);
     const socket = cfg.operatorSocketIpPort;
 
-    await worker.clients.avsClient.registerOperatorInQuorumWithAVSRegistryCoordinator(
+    await worker.avsClient.registerOperatorInQuorumWithAVSRegistryCoordinator(
       salt,
       expiry,
       blsPrivateKey,
@@ -64,7 +52,7 @@ async function _registerOperatorInQuorumWithAVSRegistryCoordinator(options: any)
 }
 
 async function _elRegisterPadoAVS(options: any) {
-  const [cfg, worker] = await _getWorker(options);
+  const [cfg, worker] = await getEigenLayerWorker(options);
   const quorums: Uint8Array = options.quorumIdList.split(',').map((i: number) => { return Number(i) });
 
   let name = cfg.nodeName;
@@ -86,7 +74,7 @@ async function _elRegisterPadoAVS(options: any) {
 }
 
 async function _elDeregisterPadoAVS(options: any) {
-  const [cfg, worker] = await _getWorker(options);
+  const [cfg, worker] = await getEigenLayerWorker(options);
   const quorums: Uint8Array = options.quorumIdList.split(',').map((i: number) => { return Number(i) });
 
   let name = cfg.nodeName;
@@ -105,17 +93,17 @@ async function _elDeregisterPadoAVS(options: any) {
 }
 
 async function _elGetOperatorId(options: any) {
-  const [_, worker] = await _getWorker(options);
+  const [_, worker] = await getEigenLayerWorker(options);
 
   {
     if (!options.operator) { options.operator = worker.ecdsaWallet.address; }
-    const operatorId = await worker.clients.avsClient.getOperatorId(options.operator);
+    const operatorId = await worker.avsClient.getOperatorId(options.operator);
     console.log('operatorId', operatorId);
   }
 }
 
 async function _elAddToWhiteList(options: any) {
-  const [_, worker] = await _getWorker(options);
+  const [_, worker] = await getEigenLayerWorker(options);
 
   {
     if (!options.operator) { options.operator = worker.ecdsaWallet.address; }
@@ -123,6 +111,13 @@ async function _elAddToWhiteList(options: any) {
   }
 }
 
+async function _everPayBalance(options: any) {
+  console.log(`Get the asset balance on everPay. account: ${options.account} symbol: ${options.symbol ? options.symbol : "ALL"}.`);
+  const results = await everPayBalance(options.account, options.symbol);
+  if (results.length > 0) {
+    console.log('results:', results);
+  }
+}
 async function _ethBalance(options: any) {
   const cfg = new WorkerConfig();
   const ethProvider = new ethers.providers.JsonRpcProvider(cfg.ethRpcUrl);
@@ -130,14 +125,14 @@ async function _ethBalance(options: any) {
   console.log(`account: ${options.account} ethereum balance: ${ethbalance}`);
 }
 async function _workerBalance(options: any) {
-  const [_, worker] = await _getWorker(options);
+  const [_, worker] = await getEigenLayerWorker(options);
 
   if (!options.account) { options.account = worker.ecdsaWallet.address; }
   const res = await worker.padoClient.getBalance(options.account, options.symbol);
   console.log(`account: ${options.account} symbol: ${options.symbol} worker balance free:${res.free}, locked:${res.locked}`);
 }
 async function _workerWithdraw(options: any) {
-  const [_, worker] = await _getWorker(options);
+  const [_, worker] = await getEigenLayerWorker(options);
 
   if (!options.account) { options.account = worker.ecdsaWallet.address; }
   const res = await worker.padoClient.getBalance(options.account, options.symbol);
@@ -182,9 +177,7 @@ async function _geneateLHEKey(options: any) {
 
 async function _aoRegister(options: any) {
   console.log('options', options);
-  const [cfg, logger, nodeApi, registry] = initAll();
-  if (options.lheKey) { cfg.lheKeyPath = options.lheKey; }
-  const worker = await newAOWorker(cfg, logger, nodeApi, registry);
+  const [cfg, worker] = await getAOWorker(options);
 
   let name = cfg.nodeName;
   let desc = cfg.nodeDescription;
@@ -203,8 +196,7 @@ async function _aoRegister(options: any) {
 
 async function _aoUpdateNaode(options: any) {
   console.log('options', options);
-  const [cfg, logger, nodeApi, registry] = initAll();
-  const worker = await newAOWorker(cfg, logger, nodeApi, registry);
+  const [cfg, worker] = await getAOWorker(options);
 
   let name = cfg.nodeName;
   let desc = cfg.nodeDescription;
@@ -223,8 +215,7 @@ async function _aoUpdateNaode(options: any) {
 
 async function _aoDeregister(options: any) {
   console.log('options', options);
-  const [cfg, logger, nodeApi, registry] = initAll();
-  const worker = await newAOWorker(cfg, logger, nodeApi, registry);
+  const [cfg, worker] = await getAOWorker(options);
 
   let name = cfg.nodeName;
   if (options.name && options.name !== "") { name = options.name; }
@@ -255,7 +246,6 @@ async function main() {
     .description('AO Register.')
     .option('--name <NAME>', 'The name of the node. Default: env.NODE_NAME.')
     .option('--desc <DESCRIPTION>', 'The description of the node. Default: env.NODE_DESCRIPTION.')
-    .option('--lhe-key <PATH>', 'Path to the LHE-key file. Default: env.LHE_KEY_PATH.')
     .action((options) => { _aoRegister(options); });
   program.command('ao:update')
     .description('AO Update.')
@@ -326,9 +316,8 @@ async function main() {
     .description('EverPay balance')
     .requiredOption('--account <ACCOUNT_ADDRESS>', 'Account address.')
     .option('--symbol <SYMBOL>', 'Token symbol, such as ETH.')
-    .action((options) => {
-      everPayBalance(options.account, options.symbol);
-    });
+    .action((options) => { _everPayBalance(options); });
+
 
   program.command('everpay:deposit')
     .description('EverPay Deposit')

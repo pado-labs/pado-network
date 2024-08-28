@@ -12,14 +12,14 @@ const readlineSync = require('readline-sync');
  * @param symbol 
  * @returns 
  */
-export async function everPayBalance(account: string, symbol?: string) {
-  console.log(`Get the asset balance on everPay. account: ${account} symbol: ${symbol ? symbol : "ALL"}.`);
+export async function everPayBalance(account: string, symbol?: string): Promise<any[]> {
+  // console.log(`Get the asset balance on everPay. account: ${account} symbol: ${symbol ? symbol : "ALL"}.`);
 
   const everpay = new Everpay();
   if (symbol == undefined || symbol === "") {
     const balanceParams = { account: account };
     await everpay.balances(balanceParams).then(console.log);
-    return;
+    return [];
   }
 
   const info = await everpay.info();
@@ -49,8 +49,9 @@ export async function everPayBalance(account: string, symbol?: string) {
       console.log(`  chain: ${token.chainType} symbol: ${token.symbol}`);
     }
   } else {
-    console.log(results);
+    // console.log('results:', results);
   }
+  return results;
 }
 
 
