@@ -136,15 +136,15 @@ async function _workerWithdraw(options: any) {
 
   if (!options.account) { options.account = worker.ecdsaWallet.address; }
   const res = await worker.padoClient.getBalance(options.account, options.symbol);
-  const workerBalance = Number(res.free);
+  const workerBalance = BigInt(res.free);
   let withdrawAmount = workerBalance;
-  if (withdrawAmount == 0) {
+  if (withdrawAmount == BigInt(0)) {
     console.error(`Insufficient free balance. Max free balance: ${workerBalance}`);
     return;
   }
 
   if (options.amount) {
-    withdrawAmount = Number(options.amount);
+    withdrawAmount = BigInt(options.amount);
     if (withdrawAmount > workerBalance) {
       console.error(`Insufficient free balance. Max free balance: ${workerBalance}`);
       return;
