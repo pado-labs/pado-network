@@ -5,18 +5,18 @@ export class Collector {
     private rpcRequestDurationSeconds: Histogram<string>;
     private rpcRequestTotal: Counter<string>;
 
-    constructor(avsName: string, registry: Registry = new Registry()) {
+    constructor(ns: string, avsName: string, registry: Registry = new Registry()) {
         this.avsName = avsName;
 
         this.rpcRequestDurationSeconds = new Histogram({
-            name: 'eigen_rpc_request_duration_seconds',
+            name: `${ns}_rpc_request_duration_seconds`,
             help: 'Duration of json-rpc <method> in seconds',
             labelNames: ['method', 'client_version', 'avs_name'],
             registers: [registry],
         });
 
         this.rpcRequestTotal = new Counter({
-            name: 'eigen_rpc_request_total',
+            name: `${ns}_rpc_request_total`,
             help: 'Total number of json-rpc <method> requests',
             labelNames: ['method', 'client_version', 'avs_name'],
             registers: [registry],

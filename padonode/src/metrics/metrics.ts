@@ -9,6 +9,8 @@ export class Metrics {
     constructor(logger: Logger, registry: Registry = new Registry()) {
         this.logger = logger;
         this.registry = registry;
+        
+        this.logger.info('new metrics');
     }
 
     public async start(port: number = 9094) {
@@ -16,7 +18,6 @@ export class Metrics {
 
         // Expose the metrics endpoint
         app.get("/metrics", async (_req, res) => {
-            this.logger.info(`calling /metrics`);
             res.type("text/plain");
             const m = await this.registry.metrics();
             res.send(m);
@@ -24,7 +25,7 @@ export class Metrics {
 
         try {
             app.listen(port, () => {
-                console.log(`Metrics server is running on port ${port}.`);
+                this.logger.info(`Metrics server is running on port ${port}.`);
             });
         } catch (e) {
             this.logger.error(`Prometheus server failed: ${e}`);

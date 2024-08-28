@@ -7,6 +7,12 @@ import { ethers } from "ethers";
 import { ELClient } from "./eigenlayer";
 import { BlsBn254 } from '../crypto/bls_bn254';
 import { bitmapToQuorumIds } from "../utils";
+import { registryCoordinatorABI } from "../abis/registryCoordinatorABI";
+import { stakeRegistryABI } from "../abis/stakeRegistryABI";
+import { serviceManagerABI } from "../abis/serviceManagerABI";
+import { blsApkRegistryABI } from "../abis/blsApkRegistryABI";
+import { workerMgtABI } from "../abis/workerMgtABI";
+import { routerABI } from "../abis/routerABI";
 
 export class AvsClient {
   constructor(
@@ -255,4 +261,52 @@ export class AvsClient {
   }
 
 
-};
+}
+
+export async function buildAvsClient(
+  ecdsaWallet: ethers.Wallet,
+  registryCoordinatorAddress: string,
+  routerAddress: string,
+  elClient: ELClient,
+  logger: Logger,
+): Promise<AvsClient> {
+  // console.log('registryCoordinatorAddress', registryCoordinatorAddress);
+  const registryCoordinator = new ethers.Contract(registryCoordinatorAddress, registryCoordinatorABI, ecdsaWallet);
+  // console.log('registryCoordinator', registryCoordinator);
+
+  const stakeRegistryAddress: string = await registryCoordinator.stakeRegistry();
+  // console.log('stakeRegistryAddress', stakeRegistryAddress);
+  const stakeRegistry = new ethers.Contract(stakeRegistryAddress, stakeRegistryABI, ecdsaWallet);
+  // console.log('stakeRegistry', stakeRegistry);
+
+
+  const serviceManagerAddress: string = await registryCoordinator.serviceManager();
+  // console.log('serviceManagerAddress', serviceManagerAddress);
+  const serviceManager = new ethers.Contract(serviceManagerAddress, serviceManagerABI, ecdsaWallet);
+  // console.log('serviceManager', serviceManager);
+
+  const blsApkRegistryAddress: string = await registryCoordinator.blsApkRegistry();
+  // console.log('blsApkRegistryAddress', blsApkRegistryAddress);
+  const blsApkRegistry = new ethers.Contract(blsApkRegistryAddress, blsApkRegistryABI, ecdsaWallet);
+  // console.log('blsApkRegistry', blsApkRegistry);
+
+  const router = new ethers.Contract(routerAddress, routerABI, ecdsaWallet);
+  const workerMgtAddress: string = await router.getWorkerMgt();
+  // console.log('workerMgtAddress', workerMgtAddress);
+  const workerMgt = new ethers.Contract(workerMgtAddress, workerMgtABI, ecdsaWallet);
+  // console.log('workerMgt', workerMgt);
+
+
+  const avsClient = new AvsClient(
+    ecdsaWallet,
+    elClient,
+    serviceManager,
+    registryCoordinator,
+    stakeRegistry,
+    blsApkRegistry,
+    workerMgt,
+    logger,
+  );
+
+  return avsClient;
+}

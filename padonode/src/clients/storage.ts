@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 import Arweave from "arweave";
 import { getDataFromArseeding, submitDataToArseedingArConnect, submitDataToArseedingMetamask } from "./internal/arseeding";
 import { getDataFromAR, submitDataToAR } from "./internal/arweave";
+import { Collector as RpcCollector } from "../metrics/collectors/rpc-calls/rps-calls";
 
 export const ARConfig = {
   host: 'arweave.net',
@@ -31,6 +32,8 @@ export class StorageClient {
     private readonly noPay: boolean,
     // @ts-ignore
     private readonly logger: Logger,
+    // @ts-ignore
+    private readonly rpcCollector: RpcCollector,
   ) {
   }
 
@@ -42,6 +45,9 @@ export class StorageClient {
    * @returns 
    */
   async submitData(data: Uint8Array): Promise<string> {
+    const timer_beg = Date.now();
+    this.rpcCollector.addRpcRequestTotal("storage.submitData", '1.0');
+
     let transactionId;
     switch (this.storageType) {
       case StorageType.ARSEEDING_ETH:
@@ -54,6 +60,9 @@ export class StorageClient {
         transactionId = await submitDataToAR(this.arweave, data, this.arWallet);
         break;
     }
+
+    const durations = (Date.now() - timer_beg) / 1000;
+    this.rpcCollector.observeRpcRequestDurationSeconds(durations, "storage.submitData", '1.0');
     return transactionId;
   }
 
@@ -64,6 +73,9 @@ export class StorageClient {
    * @returns 
    */
   async fetchData(transactionId: string): Promise<Uint8Array> {
+    const timer_beg = Date.now();
+    this.rpcCollector.addRpcRequestTotal("storage.fetchData", '1.0');
+
     let data;
     switch (this.storageType) {
       case StorageType.ARSEEDING_ETH:
@@ -75,6 +87,8 @@ export class StorageClient {
         break;
     }
 
+    const durations = (Date.now() - timer_beg) / 1000;
+    this.rpcCollector.observeRpcRequestDurationSeconds(durations, "storage.fetchData", '1.0');
     return data;
   }
 }
@@ -86,6 +100,7 @@ export async function buildStorageClient(
   arweave: Arweave,
   noPay: boolean,
   logger: Logger,
+  rpcCollector: RpcCollector,
 ): Promise<StorageClient> {
   const storageClient = new StorageClient(
     storageType,
@@ -94,6 +109,7 @@ export async function buildStorageClient(
     arweave,
     noPay,
     logger,
+    rpcCollector,
   );
   return storageClient;
 }

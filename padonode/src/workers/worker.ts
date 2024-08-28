@@ -8,6 +8,9 @@ import { createWriteStream, mkdir } from "node:fs";
 import * as dotenv from "dotenv";
 import { stdout } from "node:process";
 import { dirname } from "node:path";
+import { MiscMetrics } from "../metrics/miscmetrics";
+import { newEigenLayerWorker } from "./eigenlayer";
+import { newAOWorker } from "./ao";
 dotenv.config();
 
 
@@ -54,42 +57,54 @@ export function initServices(cfg: WorkerConfig, logger: Logger): [NodeApi, Regis
   return [nodeApi, registry, metrics];
 }
 
-export function initAll(): [WorkerConfig, Logger, NodeApi, Registry, Metrics] {
-  const cfg = new WorkerConfig();
-  mkdir(dirname(cfg.logFile), { recursive: true }, (err) => { if (err) throw err; });
-  const streams = [
-    { level: 'debug', stream: stdout },
-    { level: 'info', stream: createWriteStream(cfg.logFile, { flags: 'a' }) },
-  ];
-  const logger = pino({
-    base: { pid: undefined, hostname: undefined },
-    nestedKey: 'payload',
-    level: cfg.logLevel,
-    timestamp: pino.stdTimeFunctions.isoTime
-  }, pino.multistream(streams));
-  const nodeApi = new NodeApi(cfg.nodeName, cfg.nodeVersion);
-  const registry = new Registry();
-  const metrics = new Metrics(logger, registry);
+export async function getEigenLayerWorker(options: any): Promise<[WorkerConfig, any]> {
+  console.log('options', options);
 
-  return [cfg, logger, nodeApi, registry, metrics];
-};
+  const cfg = new WorkerConfig();
+  const logger_services = await initLogger("info", "./logs/services.log");
+  const [nodeApi, registry, _] = initServices(cfg, logger_services);
+  const miscMetrics = new MiscMetrics(logger_services, registry);
+  const logger = await initLogger("info", "./logs/worker.el.log");
+
+  const worker = await newEigenLayerWorker(cfg, logger, nodeApi, registry, miscMetrics);
+
+  // @TODO if enableXXX
+
+  return [worker.cfg, worker];
+}
+
+export async function getAOWorker(options: any): Promise<[WorkerConfig, any]> {
+  console.log('options', options);
+
+  const cfg = new WorkerConfig();
+  const logger_services = await initLogger("info", "./logs/services.log");
+  const [nodeApi, registry, _] = initServices(cfg, logger_services);
+  const miscMetrics = new MiscMetrics(logger_services, registry);
+  const logger = await initLogger("info", "./logs/worker.ao.log");
+
+  const worker = await newAOWorker(cfg, logger, nodeApi, registry, miscMetrics);
+
+  // @TODO if enableXXX
+
+  return [worker.cfg, worker];
+}
 
 
 async function _runWorkers(workers: IWorker[]) {
   setTimeout(async () => {
-    try {
-      // todo, set params if necessary
-      const doTaskParams = {
-        taskTypeConfig: [],
-      } as DoTaskParams;
+    const workerNums = workers.length;
+    for (let i = 0; i < workerNums; i++) {
+      try {
+        // todo, set params if necessary
+        const doTaskParams = {
+          taskTypeConfig: [],
+        } as DoTaskParams;
 
-      const workerNums = workers.length;
-      for (let i = 0; i < workerNums; i++) {
         // @ts-ignore
         const doTaskResult = await workers[i].doTask(doTaskParams);
+      } catch (e) {
+        console.log("_runWorkers exception:", e);
       }
-    } catch (e) {
-      console.log("_runWorkers exception:", e);
     }
 
     await _runWorkers(workers);
@@ -101,15 +116,11 @@ async function _runWorkers(workers: IWorker[]) {
  * @param worker 
  * 
  * ```js
- * const [cfg, logger, nodeApi, registry, metrics] = initAll();
- * const nativeWorker = await newNativeWorker(cfg, logger, nodeApi, registry);
- * const eigenWorker = await newEigenLayerWorker(cfg, logger, nodeApi, registry);
- *
  * //
- * runWorker(nativeWorker);
  * runWorker(eigenWorker);
+ * runWorker(aoWorker);
  * // or
- * runWorker([nativeWorker, eigenWorker]);
+ * runWorker([eigenWorker, aoWorker]);
  * ```
  */
 export async function runWorker(worker: IWorker | IWorker[]) {
