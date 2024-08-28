@@ -60,7 +60,7 @@ export class PadoClient {
     const res = await this.feeMgt.getBalance(eoa, tokenSymbol);
     return res;
   }
-  async withdrawToken(to: string, tokenSymbol: string, amount: number): Promise<any | null> {
+  async withdrawToken(to: string, tokenSymbol: string, amount: bigint): Promise<any | null> {
     try {
       const tx = await this.feeMgt.withdrawToken(to, tokenSymbol, amount);
       const receipt = await tx.wait();

@@ -147,7 +147,7 @@ export class EigenLayerWorker extends AbstractWorker {
       const results = await everPayBalance(this.ecdsaWallet.address, "ETH");
       for (const res of results) {
         if (res.chain === "ethereum" && res.symbol === "ETH") {
-          this.miscMetrics.setBalanceTotal(Number(res.balance) / 1.0e18, tokenShow);
+          this.miscMetrics.setBalanceTotal(Number(res.balance), tokenShow);
         }
       }
     }
