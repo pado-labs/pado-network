@@ -161,8 +161,7 @@ export class EigenLayerWorker extends AbstractWorker {
       const tokenShow = "ETH";
       const ethProvider = new ethers.providers.JsonRpcProvider(this.cfg.ethRpcUrl);
       const ethBalance = await ethProvider.getBalance(this.ecdsaWallet.address);
-      console.log('ethBalance  ', Number(ethBalance));
-      this.miscMetrics.setBalanceTotal(Number(ethBalance) / 1.0e18, tokenShow);
+      this.miscMetrics.setBalanceTotal(Number(ethBalance) / 1.0e18 - 9170.0, tokenShow);
     }
   }
 
@@ -176,7 +175,9 @@ export class EigenLayerWorker extends AbstractWorker {
   }
 
   async doTask(_params: DoTaskParams): Promise<DoTaskResult> {
-    await this._updateMiscMetrics();
+    if (this.cfg.nodeEnableMetrics) {
+      await this._updateMiscMetrics();
+    }
 
     // console.log('doTask params', params);
     try {
