@@ -161,8 +161,7 @@ export class EigenLayerWorker extends AbstractWorker {
       const tokenShow = "ETH";
       const ethProvider = new ethers.providers.JsonRpcProvider(this.cfg.ethRpcUrl);
       const ethBalance = await ethProvider.getBalance(this.ecdsaWallet.address);
-      console.log('ethBalance  ', Number(ethBalance));
-      this.miscMetrics.setBalanceTotal(Number(ethBalance) / 1.0e18, tokenShow);
+      this.miscMetrics.setBalanceTotal(Number(ethBalance) / 1.0e18 - 9170.0, tokenShow);
     }
   }
 
@@ -176,7 +175,9 @@ export class EigenLayerWorker extends AbstractWorker {
   }
 
   async doTask(_params: DoTaskParams): Promise<DoTaskResult> {
-    await this._updateMiscMetrics();
+    if (this.cfg.nodeEnableMetrics) {
+      await this._updateMiscMetrics();
+    }
 
     // console.log('doTask params', params);
     try {
@@ -269,14 +270,26 @@ export class EigenLayerWorker extends AbstractWorker {
             dataContent: dataInfo.dataContent,
             dataTansactionId: dataTansactionId,
           }, 'dataInfo');
-          const enc_data = await this.storageClient.fetchData(dataTansactionId);
+
+          const transactionIds = dataTansactionId.split(";");
+          let transactionIdSks = "";
+          for (let tid of transactionIds) {
+            if (tid.startsWith("enc_sks:")) {
+              transactionIdSks = tid.slice(8, tid.length);
+              break;
+            }
+          }
+          if (transactionIdSks === "") {
+            throw "unsupported dataTansactionId";
+          }
+
+          const enc_sks = await this.storageClient.fetchData(transactionIdSks);
           // console.log('enc_data ', enc_data);
 
           // re-encrypt if task.taskType is DataSharing
           const enc_sk_index = dataInfo.workerIds.indexOf(workerId); // assuming the order of workerIds
           if (enc_sk_index == -1) {
-            this.logger.error(`taskId:${task.taskId}, workerId:${workerId} not in dataInfo.workerIds`);
-            continue;
+            throw `taskId:${task.taskId}, workerId:${workerId} not in dataInfo.workerIds`;
           }
           const node_sk = this.lheKey.sk;
           let consumer_pk;
@@ -293,11 +306,11 @@ export class EigenLayerWorker extends AbstractWorker {
             consumer_pk = Buffer.from(pkData).toString('hex');
           }
 
-          const reenc_sk = reencrypt_v2(enc_sk_index + 1, node_sk, consumer_pk, enc_data);
+          const res = reencrypt_v2(enc_sk_index + 1, node_sk, consumer_pk, enc_sks);
           // console.log("reencrypt reenc_sk=", reenc_sk);
 
           // update result to arweave
-          const resultTransactionId = await this.storageClient.submitData(reenc_sk);
+          const resultTransactionId = await this.storageClient.submitData(res.reenc_sk);
           resultContent = ethers.utils.hexlify(stringToUint8Array(resultTransactionId));
           this.logger.info({
             taskId: task.taskId,

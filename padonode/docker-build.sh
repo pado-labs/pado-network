@@ -10,9 +10,9 @@ npm run build
 ver=$(cat package.json | grep version | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 if [ $ver ]; then
   tag=v${ver}
-  docker build -t padolabs/pado-network:${tag} . -f Dockerfile.build
+  sudo docker build -t padolabs/pado-network:${tag} . -f Dockerfile.build
 fi
 
-docker build -t padolabs/pado-network:latest . -f Dockerfile.build
+sudo docker build -t padolabs/pado-network:latest . -f Dockerfile.build
 # docker build --progress=plain --no-cache -t padolabs/pado-network:latest . -f Dockerfile.build
 exit 0

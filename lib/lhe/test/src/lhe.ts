@@ -199,35 +199,3 @@ export const decrypt_v2 = (reenc_sks: string[],
 
     return { msg };
 }
-
-
-export type LHEKey = {
-    pk: string;
-    sk: string;
-};
-
-/**
- * Generate private and public key pair
- *
- * @returns Return the key pair object which contains pk and sk fields
- */
-export function generateKey(): Promise<LHEKey> {
-    if (lhe && lhe._keygen) {
-        return keygen_v2();
-    }
-
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(keygen_v2());
-        }, 1000);
-    });
-};
-
-
-async function test() {
-    const r = await generateKey();
-    console.log(r);
-}
-if (require.main === module) {
-    test();
-}
