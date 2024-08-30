@@ -6,7 +6,6 @@ import { getOptValue, getPrivateKey } from "./utils";
 import { generateKey } from "./crypto/lhe";
 import { dirname } from "node:path";
 import { Command } from "commander";
-import { assert } from "node:console";
 import { DeregisterParams, RegisterParams, UpdateParams } from "./workers/types";
 import { everPayBalance, everPayDeposit } from "./misc/everpay";
 const program = new Command();
