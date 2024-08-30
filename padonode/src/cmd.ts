@@ -160,16 +160,11 @@ async function _workerWithdraw(options: any) {
 async function _geneateLHEKey(options: any) {
   console.log('options', options);
   const keyName = options.keyName;
-  const n = 3; // not used
-  const t = 2; // not used
-  assert(n >= 3, "n >= 3");
-  assert(t >= 1, "t >= 1");
-  assert(n >= t, "n >= t");
 
   {
     const keyPath = `./keys/${keyName}.lhe.key.json`;
     await mkdir(dirname(keyPath), { recursive: true }, (err) => { if (err) throw err; });
-    const key = await generateKey({ n: n, t: t });
+    const key = await generateKey();
     writeFileSync(keyPath, JSON.stringify(key));
     console.log(`The key has been stored into '${keyPath}'.`);
   }
