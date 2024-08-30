@@ -1,0 +1,16 @@
+{
+  "name": "@padolabs/lhe",
+  "version": "0.2.0",
+  "description": "LHE",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.json && cp src/lib/lhe.wasm dist/lib/lhe.wasm"
+  },
+  "author": "PADO Labs",
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5"
+  }
+}
