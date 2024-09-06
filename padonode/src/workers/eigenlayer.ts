@@ -168,6 +168,9 @@ export class EigenLayerWorker extends AbstractWorker {
   private async _updateMiscMetrics() {
     this._updateBalanceMetrics();
     {
+      await this.economicsCollector.collectRegisteredStake();
+    }
+    {
       const taskType = "EL.DataSharing";
       this.miscMetrics.setTaskSuccessCount(this.taskStatistics.successCount, taskType);
       this.miscMetrics.setTaskFailedCount(this.taskStatistics.failedCount, taskType);
@@ -176,7 +179,11 @@ export class EigenLayerWorker extends AbstractWorker {
 
   async doTask(_params: DoTaskParams): Promise<DoTaskResult> {
     if (this.cfg.nodeEnableMetrics) {
-      await this._updateMiscMetrics();
+      try {
+        await this._updateMiscMetrics();
+      } catch (e) {
+        console.log("updateMetrics exception:", e);
+      }
     }
 
     // console.log('doTask params', params);
@@ -404,6 +411,8 @@ export async function newEigenLayerWorker(cfg: WorkerConfig, logger: Logger, nod
     "1": "quorum1",
     "2": "quorum2",
     "3": "quorum3",
+    "4": "quorum4",
+    "5": "quorum5",
   };
   // @ts-ignore
   const economicsCollector = new EconomicsCollector(
