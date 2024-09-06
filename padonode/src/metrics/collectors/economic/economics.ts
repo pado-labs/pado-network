@@ -46,13 +46,16 @@ export class Collector {
   }
 
   private async initOperatorId(): Promise<boolean> {
-    if (this.operatorId === null) {
-      this.operatorId = await this.avsClient.getOperatorId(this.operatorAddr);
+    if (this.operatorId === "") {
+      const isOperatorRegistered = await this.avsClient.isOperatorRegistered(this.operatorAddr);
+      if (isOperatorRegistered) {
+        this.operatorId = await this.avsClient.getOperatorId(this.operatorAddr);
+      }
     }
-    return this.operatorId !== null; // true means success
+    return this.operatorId !== "";
   }
 
-  public async collect(): Promise<void> {
+  public async collectSlashingStatus(): Promise<void> {
     // Collect slashingStatus metric
     const operatorIsFrozen = await this.elClient.operatorIsFrozen(this.operatorAddr);
     if (operatorIsFrozen === null) {
@@ -61,7 +64,10 @@ export class Collector {
       const operatorIsFrozenValue = operatorIsFrozen ? 1.0 : 0.0;
       this.slashingStatus.set(operatorIsFrozenValue);
     }
+  }
 
+
+  public async collectRegisteredStake(): Promise<void> {
     // Collect registeredStake metric
     if (!this.initOperatorId()) {
       this.logger.warn('Failed to fetch and cache operator id. Skipping collection of registeredStake metric.');
@@ -73,4 +79,5 @@ export class Collector {
       }
     }
   }
+
 }
