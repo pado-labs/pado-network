@@ -6,6 +6,7 @@ import { Logger } from 'pino';
 const EIGEN_PROM_NAMESPACE = 'eigen';
 
 export class MiscMetrics {
+    //@ts-ignore
     private logger: Logger;
     private registry: Registry;
     private balanceTotal: Gauge<string>;
@@ -15,7 +16,6 @@ export class MiscMetrics {
     constructor(logger: Logger, registry: Registry = new Registry()) {
         this.logger = logger;
         this.registry = registry;
-        this.logger.info('new misc metrics');
 
         // Metrics
         this.balanceTotal = new Gauge({

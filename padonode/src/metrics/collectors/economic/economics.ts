@@ -69,7 +69,7 @@ export class Collector {
 
   public async collectRegisteredStake(): Promise<void> {
     // Collect registeredStake metric
-    if (!this.initOperatorId()) {
+    if (!await this.initOperatorId()) {
       this.logger.warn('Failed to fetch and cache operator id. Skipping collection of registeredStake metric.');
     } else {
       const quorumStakeMap = await this.avsClient.getOperatorStakeInQuorumsOfOperatorAtCurrentBlock(this.operatorId);

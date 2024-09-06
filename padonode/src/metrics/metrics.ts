@@ -9,8 +9,6 @@ export class Metrics {
     constructor(logger: Logger, registry: Registry = new Registry()) {
         this.logger = logger;
         this.registry = registry;
-        
-        this.logger.info('new metrics');
     }
 
     public async start(port: number = 9094) {
