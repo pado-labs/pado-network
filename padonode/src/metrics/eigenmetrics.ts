@@ -7,6 +7,7 @@ const EIGEN_PROM_NAMESPACE = 'eigen';
 
 export class EigenMetrics {
     private avsName: string;
+    //@ts-ignore
     private logger: Logger;
     private registry: Registry;
     private feeEarnedTotal: Counter<string>;
@@ -16,7 +17,6 @@ export class EigenMetrics {
         this.avsName = avsName;
         this.logger = logger;
         this.registry = registry;
-        this.logger.info('new eigen metrics');
 
         // Metrics
         this.feeEarnedTotal = new Counter({
